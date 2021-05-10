@@ -110,7 +110,7 @@ The goal of this document is to try and provide a more accuate comparison of gra
 
 ## COVID Across Canada
 
-First, a quick look at COVID cases across canada sorted in a descending order.
+### COVID cases across canada sorted in a descending order
 
 ```{r COVID_Canad_Plot, echo=FALSE}
 Can_Fig <- Merge_Covid_Active %>%
@@ -125,3 +125,22 @@ Can_Fig <- Merge_Covid_Active %>%
 Can_Fig
 
 ``` 
+
+
+### Covid cases across Canada by population
+```{r}
+Can_Fig_pop <- Merge_Covid_Active %>%
+  plot_ly(x = ~Population,
+          y = ~ACTIVE_CASES,
+          type = "scatter",
+          mode = "markers",
+          text = ~paste("Region:", region, "<br>Active Cases:", ACTIVE_CASES),
+          hoverinfo = "text",
+          color = ~cases_per_100k,
+          colors = "YlOrRd")%>%
+  layout(xaxis = list(title = "", tickangle = -45),
+         margin = list(b = 150))
+
+Can_Fig_pop
+```
+
