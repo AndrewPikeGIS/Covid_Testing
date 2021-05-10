@@ -33,7 +33,7 @@ BC_Covid <- read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID
 BC_pop <- read_csv("~/Data Science Work/COVID_DOC/BC_pop.csv")
 ```
 
-```{r data_manipulaiton, echo =FALSE}
+```{r data_manipulaiton, echo =FALSE, warning=FALSE, message=FALSE}
 #create join fields for overal merge dataset
 Ontario_COVID <- Ontario_COVID %>%
   mutate(prov = "ON",
@@ -95,6 +95,10 @@ Merge_Covid_Active <- Merge_Covid_Active %>%
          cases_per_100k = ACTIVE_CASES/(Population/100000)) %>%
   filter(ACTIVE_CASES>0)%>%
   arrange(desc(ACTIVE_CASES))
+
+Merge_Covid_Active$region <- factor(Merge_Covid_Active$region,
+                                    levels =unique(Merge_Covid_Active$region)
+                                    [order(Merge_Covid_Active$ACTIVE_CASES, decreasing = TRUE)])
 ```
 
 
