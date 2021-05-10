@@ -1,0 +1,123 @@
+---
+title: "COVID Plots"
+author: "Andrew Pike"
+date: "10/05/2021"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(lubridate)
+library(dplyr)
+library(plotly)
+library(readr)
+library(knitr)
+library(rvest)
+source("Helper.r")
+```
+
+
+```{r load_data, echo=FALSE, message=FALSE, warning=FALSE}
+Ontario_COVID <- read_csv("https://data.ontario.ca/dataset/1115d5fe-dd84-4c69-b5ed-05bf0c0a0ff9/resource/d1bfe1ad-6575-4352-8302-09ca81f7ddfc/download/cases_by_status_and_phu.csv")
+
+ON_pop <- read_csv("~/Data Science Work/COVID_DOC/ON_pop.csv")
+
+Alberta_COVID <- read_csv("https://www.alberta.ca/data/stats/covid-19-alberta-statistics-data.csv")
+
+AB_pop <- read_csv("~/Data Science Work/COVID_DOC/AB_pop.csv")
+
+BC_Covid <- read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Regional_Summary_Data.csv")
+
+BC_pop <- read_csv("~/Data Science Work/COVID_DOC/BC_pop.csv")
+```
+
+```{r data_manipulaiton, echo =FALSE}
+#create join fields for overal merge dataset
+Ontario_COVID <- Ontario_COVID %>%
+  mutate(prov = "ON",
+         region = PHU_NAME) %>%
+  drop_na(region)
+
+#fix the region names for the ontario population table
+ON_pop <- ON_pop %>% mutate(region = toupper(region))
+
+#Join population data to the covid dataset
+Ontario_COVID <- left_join(Ontario_COVID, ON_pop, by = "region")
+
+#Fix alberta covid dataset for the canada wide merge
+Alberta_COVID <- Alberta_COVID %>% 
+  mutate(prov = "AB",
+         region = toupper(`Alberta Health Services Zone`),
+         age = ab_age(`Age group`)) %>%
+  drop_na(region)
+
+#merge the Alberta population dat to the covid dataset.
+Alberta_COVID <- left_join(Alberta_COVID, AB_pop, by = "region")
+
+#fix the bc covid dataset
+BC_Covid <-BC_Covid %>% mutate(prov = "BC",
+                               region = HA,
+                               ACTIVE_CASES = Cases_Reported)
+
+#join the populationd data to the bc covid data
+BC_Covid <- left_join(BC_Covid, BC_pop)
+
+#filter the AB data to active cases
+Alberta_COVID_Active <-Alberta_COVID %>% 
+  filter(`Case status` == "Active") %>%
+  group_by(region, Population) %>%
+  summarize(ACTIVE_CASES = n()) %>%
+  mutate(prov = "AB")
+
+#filter the bc dat to the best approximation of active cases
+BC_Covid_Active <- BC_Covid %>%
+  filter(Date == max(Date) & region != "All") %>%
+  group_by(region, Population) %>%
+  summarize(ACTIVE_CASES = n()) %>%
+  mutate("prov" = "BC")
+
+#filter the ontario data to active cases
+Ontario_COVID_Active <- Ontario_COVID %>%
+  filter(FILE_DATE == max(FILE_DATE)) %>%
+  select("prov",
+         "region",
+         "ACTIVE_CASES",
+         "Population")
+
+#merge to the final canada wide dataset
+Merge_Covid_Active <- bind_rows(Alberta_COVID_Active, BC_Covid_Active, Ontario_COVID_Active)
+
+Merge_Covid_Active <- Merge_Covid_Active %>%
+  drop_na(Population) %>%
+  mutate(region = as.factor(add_prov(prov, region)),
+         cases_per_100k = ACTIVE_CASES/(Population/100000)) %>%
+  filter(ACTIVE_CASES>0)%>%
+  arrange(desc(ACTIVE_CASES))
+```
+
+
+# Covid 19: A fair Comparison
+
+## Intro
+
+The goal of this document is to try and provide a more accuate comparison of granular COVID 19 infection rates across Canada.
+
+## COVID Across Canada
+
+First, a quick look at COVID cases across canada sorted in a descending order.
+
+```{r COVID_Canad_Plot, echo=FALSE}
+Can_Fig <- Merge_Covid_Active %>%
+  plot_ly(x = ~region,
+          y = ~ACTIVE_CASES,
+          type = "bar",
+          text = ~paste("Region:", region, "<br>Active Cases:", ACTIVE_CASES),
+          hoverinfo = "text")%>%
+  layout(xaxis = list(title = "", tickangle = -45),
+         margin = list(b = 150))
+
+Can_Fig
+
+``` 
