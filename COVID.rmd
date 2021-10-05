@@ -1,10 +1,9 @@
 ---
 title: "COVID Plots"
 author: "Andrew Pike"
-date: "10/05/2021"
+date: "08/09/2021"
 output: html_document
 ---
-
 
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -15,12 +14,16 @@ library(plotly)
 library(readr)
 library(knitr)
 library(rvest)
+library(RColorBrewer)
+library(stringr)
 source("Helper.r")
 ```
 
 
 ```{r load_data, echo=FALSE, message=FALSE, warning=FALSE}
 Ontario_COVID <- read_csv("https://data.ontario.ca/dataset/1115d5fe-dd84-4c69-b5ed-05bf0c0a0ff9/resource/d1bfe1ad-6575-4352-8302-09ca81f7ddfc/download/cases_by_status_and_phu.csv")
+
+Ontario_COVID_Daily <- read_csv("https://data.ontario.ca/dataset/f4f86e54-872d-43f8-8a86-3892fd3cb5e6/resource/8a88fe6d-d8fb-41a3-9d04-f0550a44999f/download/daily_change_in_cases_by_phu.csv")
 
 ON_pop <- read_csv("~/Data Science Work/COVID_DOC/ON_pop.csv")
 
@@ -31,6 +34,12 @@ AB_pop <- read_csv("~/Data Science Work/COVID_DOC/AB_pop.csv")
 BC_Covid <- read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Regional_Summary_Data.csv")
 
 BC_pop <- read_csv("~/Data Science Work/COVID_DOC/BC_pop.csv")
+
+Sask_COVID <- read_csv("https://dashboard.saskatchewan.ca/export/cases/3598.csv")
+
+Sk_pop <- read_csv("~/Data Science Work/COVID_DOC/SK_pop.csv")
+
+#MB_Covid <- read_csv("C:/Users/andrew/Downloads/Manitoba_COVID-19_%E2%80%93_Daily_Cases_by_Status_and_RHA.csv")
 ```
 
 ```{r data_manipulaiton, echo =FALSE, warning=FALSE, message=FALSE}
@@ -41,7 +50,8 @@ Ontario_COVID <- Ontario_COVID %>%
   drop_na(region)
 
 #fix the region names for the ontario population table
-ON_pop <- ON_pop %>% mutate(region = toupper(region))
+ON_pop <- ON_pop %>% mutate(region = toupper(region),
+                            density = Population/area)
 
 #Join population data to the covid dataset
 Ontario_COVID <- left_join(Ontario_COVID, ON_pop, by = "region")
@@ -53,6 +63,9 @@ Alberta_COVID <- Alberta_COVID %>%
          age = ab_age(`Age group`)) %>%
   drop_na(region)
 
+AB_pop <- AB_pop %>%
+  mutate(density = Population/area)
+
 #merge the Alberta population dat to the covid dataset.
 Alberta_COVID <- left_join(Alberta_COVID, AB_pop, by = "region")
 
@@ -61,22 +74,25 @@ BC_Covid <-BC_Covid %>% mutate(prov = "BC",
                                region = HA,
                                ACTIVE_CASES = Cases_Reported)
 
+BC_pop <- BC_pop %>%
+  mutate(density = Population/area)
+
 #join the populationd data to the bc covid data
 BC_Covid <- left_join(BC_Covid, BC_pop)
 
 #filter the AB data to active cases
 Alberta_COVID_Active <-Alberta_COVID %>% 
   filter(`Case status` == "Active") %>%
-  group_by(region, Population) %>%
+  group_by(region, Population, density) %>%
   summarize(ACTIVE_CASES = n()) %>%
   mutate(prov = "AB")
 
 #filter the bc dat to the best approximation of active cases
 BC_Covid_Active <- BC_Covid %>%
-  filter(Date == max(Date) & region != "All") %>%
-  group_by(region, Population) %>%
-  summarize(ACTIVE_CASES = n()) %>%
-  mutate("prov" = "BC")
+  filter(Date >= (max(Date) - days(14)) & region != "All" & HSDA != "All") %>%
+  group_by(region, Population, density) %>%
+  summarize(ACTIVE_CASES = sum(Cases_Reported)) %>%
+  mutate(prov = "BC")
 
 #filter the ontario data to active cases
 Ontario_COVID_Active <- Ontario_COVID %>%
@@ -84,15 +100,46 @@ Ontario_COVID_Active <- Ontario_COVID %>%
   select("prov",
          "region",
          "ACTIVE_CASES",
-         "Population")
+         "Population",
+         "density")
+
+#clean up sask data
+Sask_COVID <- Sask_COVID %>% 
+  group_by(Date,
+           Region) %>%
+  summarize(New_Cases = sum(`New Cases`),
+            Active_Cases = sum(`Active Cases`)) %>%
+  ungroup()
+
+colnames(Sask_COVID) <- c("Date", "region", "New_Cases", "ACTIVE_CASES")
+
+Sask_COVID_Active <- Sask_COVID %>%
+  filter(Date == max(Date))
+
+Sk_pop <- Sk_pop %>%
+  mutate(density = Population/area,
+         prov = "SK")
+
+Sask_COVID_Active <- left_join(Sask_COVID_Active, Sk_pop)
+
+Sask_COVID_Active <- Sask_COVID_Active %>%
+  select("prov",
+         "region",
+         "ACTIVE_CASES",
+         "Population",
+         "density")
 
 #merge to the final canada wide dataset
-Merge_Covid_Active <- bind_rows(Alberta_COVID_Active, BC_Covid_Active, Ontario_COVID_Active)
+Merge_Covid_Active <- bind_rows(Alberta_COVID_Active,
+                                BC_Covid_Active,
+                                Ontario_COVID_Active,
+                                Sask_COVID_Active)
 
 Merge_Covid_Active <- Merge_Covid_Active %>%
   drop_na(Population) %>%
   mutate(region = as.factor(add_prov(prov, region)),
-         cases_per_100k = ACTIVE_CASES/(Population/100000)) %>%
+         cases_per_100k = ACTIVE_CASES/(Population/100000),
+         cases_times_density = ACTIVE_CASES*density) %>%
   filter(ACTIVE_CASES>0)%>%
   arrange(desc(ACTIVE_CASES))
 
@@ -101,46 +148,450 @@ Merge_Covid_Active$region <- factor(Merge_Covid_Active$region,
                                     [order(Merge_Covid_Active$ACTIVE_CASES, decreasing = TRUE)])
 ```
 
+## Active COVID Across Canada
 
-# Covid 19: A fair Comparison
+### COVID cases across Canada by province
 
-## Intro
+The bar plot shows active cases in three provinces accross Canada. BC active cases data is not maintained by the government of British Columbia so here it is being approximated by summing all reported cases within the last 14 days. <br/>
+<br/>
+To get a better idea of overall provincial case situation, active cases are normalized against population. Active cases are divided by a population factor of 100k so the outcome becomes Active Cases per 100 000 people.
+<br/>
 
-The goal of this document is to try and provide a more accuate comparison of granular COVID 19 infection rates across Canada.
+```{r casesCan, echo = FALSE}
+Merge_Covid_Active_Prov <- Merge_Covid_Active %>%
+  group_by(prov) %>%
+  summarize(Pop = sum(Population),
+            ACTIVE_CASES_PROV = sum(ACTIVE_CASES)) %>%
+  mutate(ACTIVE_PER_100 = ACTIVE_CASES_PROV /(Pop/100000))
 
-## COVID Across Canada
+Can_FigProv <- Merge_Covid_Active_Prov %>% 
+  plot_ly(x = ~prov,
+          y = ~ACTIVE_CASES_PROV,
+          type = "bar",
+          hovertext = ~paste("Prov:", prov, "<br>Active Cases:", ACTIVE_CASES_PROV),
+          hoverinfo = "text",
+          width = 1000,
+          height = 800) %>%
+  layout(xaxis = list(title = "Province",
+                      tickangle = -45),
+         yaxis = list(title = "Active Cases"),
+         margin = list(b = 150),
+         title = "Active Cases by Province")
 
-### COVID cases across canada sorted in a descending order
+Can_FigProv
+
+Can_FigProv_100 <- Merge_Covid_Active_Prov %>%
+  plot_ly(x = ~prov,
+          y = ~ACTIVE_PER_100,
+          type = "bar",
+          hovertext = ~paste("Prov:", prov, "<br>Active Cases per 100K:", ACTIVE_PER_100),
+          hoverinfo = "text",
+          width = 800,
+          height = 800) %>%
+  layout(xaxis = list(title = "Province",
+                      tickangle = -45),
+         yaxis = list(title = "Active Cases per 100K"),
+         margin = list(b = 150),
+         title = "Active Cases per 100K by Province")
+
+Can_FigProv_100
+```
+
+### Active COVID Cases Across Canada (> 100 cases) 
+
+Provincal data is a bit misleading, especially in a large country  like Canada. Time to get a more granular look at active cases across Canada. Most provinces report their case data by a smaller health region. Let's replicate the previous plots for the local health regions in Alberta, BC, and Ontario. the dataset has been filtered to show only health regions with over 100 active cases.
+<br/>  
+<br/>
 
 ```{r COVID_Canad_Plot, echo=FALSE}
 Can_Fig <- Merge_Covid_Active %>%
+  filter(ACTIVE_CASES > 100) %>%
   plot_ly(x = ~region,
           y = ~ACTIVE_CASES,
           type = "bar",
-          text = ~paste("Region:", region, "<br>Active Cases:", ACTIVE_CASES),
-          hoverinfo = "text")%>%
-  layout(xaxis = list(title = "", tickangle = -45),
-         margin = list(b = 150))
+          hovertext = ~paste("Region:", region, "<br>Active Cases:", ACTIVE_CASES),
+          hoverinfo = "text",
+          width = 1000,
+          height = 800) %>%
+  layout(xaxis = list(title = "Region",
+                      tickangle = -45),
+         yaxis = list(title = "Active Cases"),
+         margin = list(b = 150),
+         title = "Active Cases by Region (>100 active cases)")
 
 Can_Fig
 
 ``` 
 
 
-### Covid cases across Canada by population
-```{r}
+### Active COVID cases across Canada by population
+
+Next we look at active COVID cases vs population for local health regions across Alberta, BC and Ontario. As expected, a somewhat linear relationship exists between population and Active COVID cases. 
+<br/>
+<br/>
+
+```{r Cases_by_Pop, echo=FALSE}
 Can_Fig_pop <- Merge_Covid_Active %>%
   plot_ly(x = ~Population,
           y = ~ACTIVE_CASES,
           type = "scatter",
           mode = "markers",
-          text = ~paste("Region:", region, "<br>Active Cases:", ACTIVE_CASES),
+          hovertext = ~paste("Region:", region, "<br>Active Cases:", ACTIVE_CASES),
           hoverinfo = "text",
-          color = ~cases_per_100k,
-          colors = "YlOrRd")%>%
-  layout(xaxis = list(title = "", tickangle = -45),
-         margin = list(b = 150))
+          color = ~ACTIVE_CASES,
+          colors = colorRampPalette(rev(brewer.pal(10, "RdYlGn")))(60),
+          marker = list(size = 10),
+          width = 1000,
+          height = 800) %>%
+  layout(xaxis = list(title = "Population",
+                      tickangle = -45),
+         yaxis = list(title = "Active Cases"),
+         margin = list(b = 150),
+         title = "Covid Cases by Population")
 
 Can_Fig_pop
 ```
 
+### Active COVID Cases per 100k Population (bar plot)
+
+Now let's look at those plots normalized to local health region populations.
+
+```{r casesper100k_bar, echo = FALSE}
+Merge_Covid_Active$region <- factor(Merge_Covid_Active$region,
+                                    levels =unique(Merge_Covid_Active$region)
+                                    [order(Merge_Covid_Active$cases_per_100k, decreasing = TRUE)])
+
+Can_Fig_pop <- Merge_Covid_Active %>%
+  filter(cases_per_100k > 50) %>%
+  plot_ly(x = ~region,
+          y = ~cases_per_100k,
+          type = "bar",
+          hovertext = ~paste("Region:", region, "<br>Cases Per 100K:", cases_per_100k),
+          hoverinfo = "text",
+          width = 1000,
+          height = 800) %>%
+  layout(xaxis = list(title = "Population",
+                      tickangle = -45),
+         yaxis = list(title = "Cases per 100k Population"),
+         margin = list(b = 150),
+         title = "Covid Cases per 100k People")
+
+Can_Fig_pop
+```
+
+### Active COVID Cases Across Canada per 100k Population
+
+
+```{r Can_Pop_per100, echo = FALSE}
+Can_Fig_pop <- Merge_Covid_Active %>%
+  plot_ly(x = ~Population,
+          y = ~cases_per_100k,
+          type = "scatter",
+          mode = "markers",
+          hovertext = ~paste("Region:", region, "<br>Cases Per 100K:", cases_per_100k),
+          hoverinfo = "text",
+          color = ~cases_per_100k,
+          colors = colorRampPalette(rev(brewer.pal(10, "RdYlGn")))(60),
+          marker = list(size = 10),
+          width = 1000,
+          height = 800) %>%
+  layout(xaxis = list(title = "Population",
+                      tickangle = -45),
+         yaxis = list(title = "Cases per 100k Population"),
+         margin = list(b = 150),
+         title = "Covid Cases per 100k People")
+
+Can_Fig_pop
+```
+
+
+### Active COVID Cases X Population Density Pop/km2 (bar plot)
+
+As we're often reminded, distance between people limits the spread of the virus. In an attempt to account for regions where distance between people is somewhat unavoidable we will apply a penalty to active COVID cases based on population density within local health regions. To keep it simple, Active Cases are multiplied by population density which is a simple measure of population per square kilometer. When shown on a regular scale the disparity between the Toronto/Peel and all other regions becomes apparent. 
+<br/>
+<br/>
+
+```{r casesperden_bar, echo = FALSE}
+Merge_Covid_Active$region <- factor(Merge_Covid_Active$region,
+                                    levels =unique(Merge_Covid_Active$region)
+                                    [order(Merge_Covid_Active$cases_times_density, decreasing = TRUE)])
+
+Can_Fig_pop <- Merge_Covid_Active %>%
+  filter(cases_times_density > 1000) %>%
+  plot_ly(x = ~region,
+          y = ~cases_times_density,
+          type = "bar",
+          hovertext = ~paste("Region:", region, "<br>Cases X Pop/sqkm:", cases_times_density),
+          hoverinfo = "text",
+          width = 1000,
+          height = 800) %>%
+  layout(xaxis = list(title = "Region",
+                      tickangle = -45),
+         yaxis = list(title = "Cases X Population Density"),
+         margin = list(b = 150),
+         title = "Covid Cases X Population/Area (sqkm)")
+
+Can_Fig_pop
+```
+
+### Active COVID Cases Across Canada X Population Density Pop/km2 
+
+
+```{r Can_Pop_perden, echo = FALSE}
+Can_Fig_pop <- Merge_Covid_Active %>%
+  plot_ly(x = ~density,
+          y = ~cases_times_density,
+          type = "scatter",
+          mode = "markers",
+          hovertext = ~paste("Region:", region, "<br>Cases X Pop/sqkm:", cases_times_density),
+          hoverinfo = "text",
+          color = ~cases_times_density,
+          colors = colorRampPalette(rev(brewer.pal(10, "RdYlGn")))(60),
+          marker = list(size = 10),
+          width = 1000,
+          height = 800) %>%
+  layout(xaxis = list(title = "Population Density (pop/sqkm)",
+                      tickangle = -45),
+         yaxis = list(title = "Cases X Population Density"),
+         margin = list(b = 150),
+         title = "Covid Cases X Population/Area (sqkm)")
+
+Can_Fig_pop
+```
+
+## Daily New Cases Across Canada
+
+### Alberta
+
+Alberta daily reported cases smoothed using a loess function to remove local variability.
+<br/>
+<br/>
+
+```{r NewDailyCasesAB, echo=FALSE, message=FALSE, warning = FALSE}
+day_count <- function(dateStart, dateEnd) {
+  x <- interval(dateStart,dateEnd)
+  return(abs(x %/% days(1)))
+}
+
+AB_Daily <- Alberta_COVID %>%
+  group_by(`Date reported`, region) %>%
+  summarize(cases_reported = n()) %>%
+  mutate(date = `Date reported`)
+
+startdate <- min(AB_Daily$date)
+
+AB_Daily <- AB_Daily %>%
+  mutate(day_from_start = as.numeric(day_count(startdate, date))) 
+
+ab_regions <- c("CALGARY ZONE","EDMONTON ZONE", "CENTRAL ZONE", "NORTH ZONE", "SOUTH ZONE")
+
+#test
+run_loess <- function(DailyTab, reg_in){
+  df <- DailyTab %>%
+    filter(region == reg_in) 
+
+  fit <- df %>%
+    loess(cases_reported ~ day_from_start, span = 0.04, data =.)
+
+  pred <- predict(fit, df$day_from_start)
+  
+  pred <- as.data.frame(pred)
+  
+  pred <- cbind(df$day_from_start, pred)
+  
+  colnames(pred) <- c("day_from_start", "smooth")
+  
+  df <- left_join(df, pred)
+  
+  df <- df %>%
+    mutate(smooth = if_else(smooth < 0, 0, smooth))
+  
+  return(df)
+} 
+
+Cal <- AB_Daily %>% run_loess(ab_regions[[1]])
+ED <- AB_Daily %>% run_loess(ab_regions[[2]])
+Cen <-AB_Daily %>%  run_loess(ab_regions[[3]])
+Nrth <- AB_Daily %>% run_loess(ab_regions[[4]])
+Sth <-AB_Daily %>%  run_loess(ab_regions[[5]])
+
+
+AB <- bind_rows(Cal, ED, Cen, Nrth, Sth)
+
+ab_regions <- c("EDMONTON ZONE", "CENTRAL ZONE", "NORTH ZONE", "SOUTH ZONE")
+
+figAB_Daily <- AB %>%
+  group_by(region) %>%
+  plot_ly(x = ~date,
+          y = ~smooth,
+          type = "scatter",
+          mode = "line",
+          name = ~region,
+          hovertext = ~paste("Region:",
+                             region,
+                             "<br>Cases Reported:",
+                             cases_reported,
+                             "<br>Date:",
+                             date),
+          hoverinfo = "text",
+          width = 1000,
+          height = 800) %>%
+  layout(xaxis = list(title = "Date Reported",
+                      tickangle = -45),
+         yaxis = list(title = "Cases Reported"),
+         margin = list(b = 150),
+         title = "Alberta Daily Covid Cases Reported") %>%
+  rangeslider()
+
+figAB_Daily
+```
+
+### Ontario
+
+Ontario daily reported cases smoothed using a loess function to remove local variability. The dataset has been filtered to the 7 regions with the highest active cases.
+<br/>
+<br/>
+
+```{r NewDailyCasesON, echo=FALSE, message=FALSE, warning=FALSE}
+ON_cols <- c("Date",
+             "Ottawa_Public_Health",
+             "Peel_Public_Health",
+             "Toronto_Public_Health",
+             "Hamilton_Public_Health_Services",
+             "Halton_Region_Health_Department",
+             "Durham_Region_Health_Department",
+             "York_Region_Public_Health_Services")
+
+colname <- c("Date",
+              "Algoma_Public_Health_Unit",
+              "Brant_County_Health_Unit",
+              "Chatham-Kent_Health_Unit",
+              "Durham_Region_Health_Department",
+              "Eastern_Ontario_Health_Unit",
+              "Grey_Bruce_Health_Unit",
+              "Haldimand-Norfolk_Health_Unit",
+              "Haliburton_Kawartha_Pine_Ridge_District_Health_Unit",
+              "Halton_Region_Health_Department",
+              "Hamilton_Public_Health_Services",
+              "Hastings_and_Prince_Edward_Counties_Health_Unit",
+              "Huron_Perth_District_Health_Unit",
+              "Kingston_Frontenac_and_Lennox_&_Addington_Public_Health",
+              "Lambton_Public_Health",
+              "Leeds_Grenville_and_Lanark_District_Health_Unit",
+              "Middlesex-London_Health_Unit",
+              "Niagara_Region_Public_Health_Department",
+              "North_Bay_Parry_Sound_District_Health_Unit",
+              "Northwestern_Health_Unit",
+              "Ottawa_Public_Health",
+              "Peel_Public_Health",
+              "Peterborough_Public_Health",
+              "Porcupine_Health_Unit",
+              "Region_of_Waterloo,_Public_Health",
+              "Renfrew_County_and_District_Health_Unit",
+              "Simcoe_Muskoka_District_Health_Unit",
+              "Southwestern_Public_Health",
+              "Sudbury_&_District_Health_Unit",
+              "Thunder_Bay_District_Health_Unit",
+              "Timiskaming_Health_Unit",
+              "Toronto_Public_Health",
+              "Wellington-Dufferin-Guelph_Public_Health",
+              "Windsor-Essex_County_Health_Unit",
+              "York_Region_Public_Health_Services",
+              "Total")
+
+colnames(Ontario_COVID_Daily) <- colname
+
+Ontario_COVID_DailyR <- Ontario_COVID_Daily %>%
+  select(ON_cols)
+
+piv_cols <- ON_cols[-1]
+
+ON_COVID_Daily_piv <- Ontario_COVID_DailyR %>%
+  pivot_longer(cols = all_of(piv_cols),
+               names_to = "region",
+               values_to = "cases_reported") 
+
+startdate <- min(ON_COVID_Daily_piv$Date) 
+
+ON_COVID_Daily_piv <- ON_COVID_Daily_piv %>%
+  mutate(day_from_start = as.numeric(day_count(startdate, Date))) 
+
+Tor <- ON_COVID_Daily_piv %>% run_loess(reg_in = "Toronto_Public_Health")
+Ham <- ON_COVID_Daily_piv %>% run_loess(reg_in = "Hamilton_Public_Health_Services")
+Hal <- ON_COVID_Daily_piv %>% run_loess(reg_in = "Halton_Region_Health_Department")
+Ott <- ON_COVID_Daily_piv %>% run_loess(reg_in = "Ottawa_Public_Health")
+Pel <- ON_COVID_Daily_piv %>% run_loess(reg_in = "Peel_Public_Health")
+Dur <- ON_COVID_Daily_piv %>% run_loess(reg_in = "Durham_Region_Health_Department")
+Yrk <- ON_COVID_Daily_piv %>% run_loess(reg_in = "York_Region_Public_Health_Services")
+
+ON_smooth <- rbind(Tor,
+                   Ham,
+                   Hal,
+                   Ott,
+                   Pel,
+                   Dur,
+                   Yrk)
+
+on_fig <- ON_smooth %>%
+  plot_ly(x = ~Date,
+          y = ~smooth,
+          type = "scatter",
+          mode = "line",
+          name = ~region,
+          hovertext = ~paste("Region:",
+                             region,
+                             "<br>Cases Reported:",
+                             cases_reported,
+                             "<br>Date",
+                             Date),
+          hoverinfo = "text",
+          width = 1000,
+          height = 800) %>%
+  layout(xaxis = list(title = "Date Reported",
+                      tickangle = -45),
+         yaxis = list(title = "Cases Reported"),
+         margin = list(b = 150),
+         title = "Ontario Daily Covid Cases Reported") %>%
+  rangeslider()
+
+on_fig
+```
+
+### British Columbia
+
+British Columbia daily reported cases using the provincially reported smothed dataset.
+<br/>
+<br/>
+
+```{r bcDailyCases, echo = FALSE, warning=FALSE}
+bc_fig <- BC_Covid %>% 
+  filter(HSDA != "All",
+         HSDA != "Unknown",
+         HSDA != "Out of Canada",
+         HSDA != "Northwest",
+         HSDA != "Northeast",
+         HSDA != "Northern Interior",
+         Date >= dmy(10032020)) %>%
+  plot_ly(x = ~Date,
+          y = ~Cases_Reported_Smoothed,
+          type = "scatter",
+          mode = "line",
+          name = ~HSDA,
+          hovertext = ~paste("Region:",
+                             HSDA,
+                             "<br>Cases Reported:",
+                             Cases_Reported,
+                             "<br>Date",
+                             Date),
+          hoverinfo = "text",
+          width = 1000,
+          height = 800) %>%
+  layout(xaxis = list(title = "Date Reported",
+                      tickangle = -45),
+         yaxis = list(title = "Cases Reported"),
+         margin = list(b = 150),
+         title = "British Columbia Daily Covid Cases Reported") %>%
+  rangeslider()
+
+bc_fig
+```
