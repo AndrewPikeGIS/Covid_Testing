@@ -35,7 +35,7 @@ BC_Covid <- read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID
 
 BC_pop <- read_csv("~/Data Science Work/COVID_DOC/BC_pop.csv")
 
-Sask_COVID <- read_csv("https://dashboard.saskatchewan.ca/export/cases/3598.csv")
+Sask_COVID <- read_csv("https://dashboard.saskatchewan.ca/export/cases/4012.csv")
 
 Sk_pop <- read_csv("~/Data Science Work/COVID_DOC/SK_pop.csv")
 
