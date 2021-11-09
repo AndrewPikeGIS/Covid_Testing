@@ -1,4 +1,4 @@
-clean_ontario_data <- function(ontario_covid, on_pop) {
+clean_on_data <- function(ontario_covid, on_pop) {
     #create join fields for overal merge dataset
     ontario_covid <- ontario_covid %>%
         dplyr::mutate(
