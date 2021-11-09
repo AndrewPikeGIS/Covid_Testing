@@ -1,3 +1,3 @@
-pkgload::load_all('.')
+pkgload::load_all(".")
 
 covid_app()
