@@ -56,3 +56,31 @@ clean_ab_data <- function(alberta_covid, ab_pop) {
         mutate(prov = "AB")
 
 }
+
+clean_bc_data <- function(bc_covid, bc_pop) {
+
+    #fix the bc covid dataset
+    bc_covid <- bc_covid %>%
+        mutate(
+            prov = "BC",
+            region = HA,
+            ACTIVE_CASES = Cases_Reported)
+
+    bc_pop <- bc_pop %>%
+    mutate(density = Population / area)
+
+    #join the populationd data to the bc covid data
+    bc_covid <- left_join(
+        bc_covid,
+        bc_pop)
+
+    #filter the bc dat to the best approximation of active cases
+    bc_covid_active <- bc_covid %>%
+        filter(
+            Date >= (max(Date) - days(14)) &
+            region != "All" &
+            HSDA != "All") %>%
+        group_by(region, Population, density) %>%
+        summarize(ACTIVE_CASES = sum(Cases_Reported)) %>%
+        mutate(prov = "BC")
+}
