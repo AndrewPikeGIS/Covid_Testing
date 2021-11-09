@@ -1,4 +1,4 @@
-clean_ontario_data <- function(ontario_covid) {
+clean_ontario_data <- function(ontario_covid, on_pop) {
     #create join fields for overal merge dataset
     ontario_covid <- ontario_covid %>%
         mutate(
@@ -27,5 +27,32 @@ clean_ontario_data <- function(ontario_covid) {
             "ACTIVE_CASES",
             "Population",
             "density")
+
+}
+
+clean_ab_data <- function(alberta_covid, ab_pop) {
+    #Fix alberta covid dataset for the canada wide merge
+    alberta_covid <- alberta_covid %>%
+        mutate(
+            prov = "AB",
+            region = toupper(`Alberta Health Services Zone`),
+            age = ab_age(`Age group`)) %>%
+        drop_na(region)
+
+    ab_pop <- ab_pop %>%
+        mutate(density = Population / area)
+
+    #merge the Alberta population dat to the covid dataset.
+    alberta_covid <- left_join(
+        alberta_covid,
+        ab_pop,
+        by = "region")
+
+    #filter the AB data to active cases
+    alberta_covid_active <- alberta_covid %>%
+        filter(`Case status` == "Active") %>%
+        group_by(region, Population, density) %>%
+        summarize(ACTIVE_CASES = n()) %>%
+        mutate(prov = "AB")
 
 }
