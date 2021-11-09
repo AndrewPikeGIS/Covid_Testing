@@ -28,6 +28,7 @@ clean_ontario_data <- function(ontario_covid, on_pop) {
             "Population",
             "density")
 
+    return(ontario_covid_active)
 }
 
 clean_ab_data <- function(alberta_covid, ab_pop) {
@@ -55,6 +56,7 @@ clean_ab_data <- function(alberta_covid, ab_pop) {
         dplyr::summarize(ACTIVE_CASES = n()) %>%
         dplyr::mutate(prov = "AB")
 
+    return(alberta_covid_active)
 }
 
 clean_bc_data <- function(bc_covid, bc_pop) {
@@ -83,9 +85,11 @@ clean_bc_data <- function(bc_covid, bc_pop) {
         dplyr::group_by(region, Population, density) %>%
         dplyr::summarize(ACTIVE_CASES = sum(Cases_Reported)) %>%
         dplyr::mutate(prov = "BC")
+
+    return(bc_covid_active)
 }
 
-clean_sk_data <- function(sask_covid) {
+clean_sk_data <- function(sask_covid, sk_pop) {
     #clean up sask data
     sask_covid <- sask_covid %>%
         dplyr::group_by(
@@ -122,4 +126,34 @@ clean_sk_data <- function(sask_covid) {
             "Population",
             "density")
 
+    return(sask_covid_active)
+}
+
+clean_merge_covid_data <- function(alberta_covid_active,
+                                   bc_covid_active,
+                                   ontario_covid_active,
+                                   sask_covid_active) {
+
+    #merge to the final canada wide dataset
+    merge_covid_active <- dplyr::bind_rows(
+        alberta_covid_active,
+        bc_covid_active,
+        ontario_covid_active,
+        sask_covid_active)
+
+    merge_covid_active <- merge_covid_active %>%
+        dplyr::drop_na(Population) %>%
+        dplyr::mutate(
+            region = as.factor(add_prov(prov, region)),
+            cases_per_100k = ACTIVE_CASES / (Population / 100000),
+            cases_times_density = ACTIVE_CASES * density) %>%
+        dplyr::filter(ACTIVE_CASES > 0) %>%
+        arrange(desc(ACTIVE_CASES))
+
+    merge_covid_active$region <- factor(
+        merge_covid_active$region,
+        levels = unique(merge_covid_active$region)
+        [order(merge_covid_active$ACTIVE_CASES, decreasing = TRUE)])
+
+    return(merge_covid_active)
 }
