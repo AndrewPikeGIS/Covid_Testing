@@ -31,6 +31,16 @@ clean_on_data <- function(ontario_covid, on_pop) {
     return(ontario_covid_active)
 }
 
+ab_age <- function(age_in) {
+  age_split <- strsplit(age_in, "-")[[1]][1]
+  age <- ifelse(age_split == "Under 1 year", 1, strtoi(age_split))
+  return(age)
+}
+
+add_prov <- function(prov, region) {
+  return(paste(region, prov))
+}
+
 clean_ab_data <- function(alberta_covid, ab_pop) {
     #Fix alberta covid dataset for the canada wide merge
     alberta_covid <- alberta_covid %>%
