@@ -25,7 +25,7 @@ covid_app <- function() {
             bs4Dash::sidebarMenu(
                 bs4Dash::menuItem(
                     "Covid Case Count",
-                    tabname = "covid_case_count",
+                    tabName = "covid_case_count",
                     icon = icon("chart-area")
                 ),
                 bs4Dash::menuItem(
@@ -36,11 +36,26 @@ covid_app <- function() {
             )
         ),
         bs4Dash::dashboardBody(
-            fluidRow(
-                bs4Dash::box(
-                    title = "Covid-19 Case Count"
+            bs4Dash::tabItems(
+                bs4Dash::tabItem(
+                    tabName = "covid_case_count",
+                    fluidRow(
+                        bs4Dash::box(
+                            title = "Covid-19 Case Count",
+                            width = 12
+                        )
+                    )
+                ),
+                bs4Dash::tabItem(
+                    tabName = "case_table",
+                    fluidRow(
+                        column(
+                            width = 12
+                        )
+                    )
                 )
             )
+            
         )
     )
 
