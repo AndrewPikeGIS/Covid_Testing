@@ -28,7 +28,6 @@ Ontario_COVID_Daily <- read_csv("https://data.ontario.ca/dataset/f4f86e54-872d-4
 
 ON_pop <- read_csv("data/ON_pop.csv")
 
-
 Alberta_COVID <- read_csv("https://www.alberta.ca/data/stats/covid-19-alberta-statistics-data.csv")
 
 AB_pop <- read_csv("data/AB_pop.csv")
