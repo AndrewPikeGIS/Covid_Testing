@@ -57,7 +57,10 @@ covid_app <- function() {
     )
 
     server <- function(input, output, session) {
-        mod_cad_case_table_server("case_table")
+        mod_cad_case_table_server(
+            "case_table",
+            merged_covid_data
+        )
     }
 
 
