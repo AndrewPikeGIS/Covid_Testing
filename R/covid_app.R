@@ -11,7 +11,7 @@ covid_app <- function() {
     on_covid_active <- load_on_data()
     sk_covid_active <- load_sk_data()
 
-    merged_covid_data <- clean_merge_covid_data(
+    merged_covid_data <- clean_merge_active_cases_data(
         ab_covid_active,
         bc_covid_active,
         on_covid_active,

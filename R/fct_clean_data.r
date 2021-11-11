@@ -138,7 +138,7 @@ clean_sk_data <- function(sask_covid, sk_pop) {
     return(sask_covid_active)
 }
 
-clean_merge_covid_data <- function(alberta_covid_active,
+clean_merge_active_cases_data <- function(alberta_covid_active,
                                    bc_covid_active,
                                    ontario_covid_active,
                                    sask_covid_active) {
