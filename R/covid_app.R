@@ -1,5 +1,5 @@
 #' Title
-#' 
+#'
 #' @return
 #' @export
 #' @import shiny
@@ -48,19 +48,16 @@ covid_app <- function() {
                 ),
                 bs4Dash::tabItem(
                     tabName = "case_table",
-                    fluidRow(
-                        column(
-                            width = 12
-                        )
+                    fillPage(
+                        mod_cad_case_table_ui("case_table")
                     )
                 )
             )
-            
         )
     )
 
     server <- function(input, output, session) {
-        
+        mod_cad_case_table_server("case_table")
     }
 
 
