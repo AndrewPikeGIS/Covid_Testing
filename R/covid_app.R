@@ -30,7 +30,7 @@ covid_app <- function() {
                 ),
                 bs4Dash::menuItem(
                     "AB, BC, ON, SK Cases Table",
-                    tabname = "case_table",
+                    tabName = "case_table",
                     icon = icon("th")
                 )
             )
