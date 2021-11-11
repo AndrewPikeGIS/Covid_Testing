@@ -4,7 +4,7 @@ clean_on_data <- function(ontario_covid, on_pop) {
         dplyr::mutate(
             prov = "ON",
             region = PHU_NAME) %>%
-        dplyr::drop_na(region)
+        tidyr::drop_na(region)
 
     #fix the region names for the ontario population table
     on_pop <- on_pop %>%
@@ -48,7 +48,7 @@ clean_ab_data <- function(alberta_covid, ab_pop) {
             prov = "AB",
             region = toupper(`Alberta Health Services Zone`),
             age = ab_age(`Age group`)) %>%
-        dplyr::drop_na(region)
+        tidyr::drop_na(region)
 
     ab_pop <- ab_pop %>%
         dplyr::mutate(density = Population / area)
@@ -63,9 +63,8 @@ clean_ab_data <- function(alberta_covid, ab_pop) {
     alberta_covid_active <- alberta_covid %>%
         dplyr::filter(`Case status` == "Active") %>%
         dplyr::group_by(region, Population, density) %>%
-        dplyr::summarize(ACTIVE_CASES = n()) %>%
+        dplyr::summarize(ACTIVE_CASES = dplyr::n()) %>%
         dplyr::mutate(prov = "AB")
-
     return(alberta_covid_active)
 }
 
@@ -89,7 +88,7 @@ clean_bc_data <- function(bc_covid, bc_pop) {
     #filter the bc dat to the best approximation of active cases
     bc_covid_active <- bc_covid %>%
         dplyr::filter(
-            Date >= (max(Date) - days(14)) &
+            Date >= (max(Date) - lubridate::days(14)) &
             region != "All" &
             HSDA != "All") %>%
         dplyr::group_by(region, Population, density) %>%
@@ -152,13 +151,13 @@ clean_merge_covid_data <- function(alberta_covid_active,
         sask_covid_active)
 
     merge_covid_active <- merge_covid_active %>%
-        dplyr::drop_na(Population) %>%
+        tidyr::drop_na(Population) %>%
         dplyr::mutate(
             region = as.factor(add_prov(prov, region)),
             cases_per_100k = ACTIVE_CASES / (Population / 100000),
             cases_times_density = ACTIVE_CASES * density) %>%
         dplyr::filter(ACTIVE_CASES > 0) %>%
-        arrange(desc(ACTIVE_CASES))
+        dplyr::arrange(desc(ACTIVE_CASES))
 
     merge_covid_active$region <- factor(
         merge_covid_active$region,

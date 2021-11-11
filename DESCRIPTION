@@ -1,0 +1,35 @@
+Package: covid.app
+Title: Covid app for visualizing case count
+Version: 0.0.0.1000
+Authors@R: 
+    c(person(given = "Andrew", 
+             family = "Pike", 
+             email = "andrewpikegis@gmail.com", 
+             role = c("aut", "cre")))
+Description: What the package does (one paragraph).
+License: file LICENSE
+Imports: 
+    shiny,
+    bs4Dash,
+    tidyverse,
+    data.table,
+    lubridate,
+    dplyr,
+    tidyr,
+    plotly,
+    readr,
+    knitr,
+    rvest,
+    RColorBrewer,
+    stringr,
+    pkgload,
+    reactable,
+    janitor,
+    shinymanager
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+Suggests: 
+    testthat (>= 3.0.0),
+    lintr
+Config/testthat/edition: 3
