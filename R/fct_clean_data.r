@@ -42,22 +42,26 @@ clean_on_data <- function(ontario_covid, on_pop) {
     return(ontario_covid)
 }
 
-create_active_on_table <- function(ontario_covid) {
+clean_on_daily_table <- function(on_daily_covid_data) {
+    colnames(Ontario_COVID_Daily) <- colname
 
-    #filter the ontario data to active cases
-    ontario_covid_active <- ontario_covid %>%
-        dplyr::filter(date == max(date)) %>%
-        dplyr::select(
-            "prov",
-            "region",
-            "active_cases",
-            "new_cases",
-            "resolved_cases",
-            "Population",
-            "density")
+    Ontario_COVID_DailyR <- Ontario_COVID_Daily %>%
+        select(ON_cols)
 
-    return(ontario_covid_active)
+    piv_cols <- ON_cols[-1]
+
+    ON_COVID_Daily_piv <- Ontario_COVID_DailyR %>%
+        pivot_longer(
+            cols = all_of(piv_cols),
+            names_to = "region",
+            values_to = "cases_reported") 
+
+    startdate <- min(ON_COVID_Daily_piv$Date) 
+
+    ON_COVID_Daily_piv <- ON_COVID_Daily_piv %>%
+        mutate(day_from_start = as.numeric(day_count(startdate, Date)))
 }
+
 
 ab_age <- function(age_in) {
   age_split <- strsplit(age_in, "-")[[1]][1]
@@ -93,15 +97,6 @@ clean_ab_data <- function(alberta_covid, ab_pop) {
     return(alberta_covid)
 }
 
-create_active_ab_table <- function(alberta_covid) {
-    #filter the AB data to active cases
-    alberta_covid_active <- alberta_covid %>%
-        dplyr::filter(`Case status` == "Active") %>%
-        dplyr::group_by(region, Population, density) %>%
-        dplyr::summarize(active_cases = dplyr::n()) %>%
-        dplyr::mutate(prov = "AB")
-    return(alberta_covid_active)
-}
 
 day_count <- function(date_start, date_end) {
         x <- lubridate::interval(date_start, date_end)
@@ -130,11 +125,11 @@ clean_bc_data <- function(bc_covid, bc_pop) {
     bc_covid <- bc_covid %>%
         dplyr::mutate(
             prov = "BC",
-            region = HA,
-            ACTIVE_CASES = Cases_Reported) %>%
+            region = HA) %>%
         dplyr::rename(
             date = Date,
-            )
+            new_cases = Cases_Reported,
+            hsda = HSDA)
 
     bc_pop <- bc_pop %>%
         dplyr::mutate(density = Population / area)
@@ -147,19 +142,7 @@ clean_bc_data <- function(bc_covid, bc_pop) {
     return(bc_covid)
 }
 
-create_active_bc_table <- function(bc_covid) {
-    #filter the bc dat to the best approximation of active cases
-    bc_covid_active <- bc_covid %>%
-        dplyr::filter(
-            Date >= (max(date) - lubridate::days(14)) &
-            region != "All" &
-            HSDA != "All") %>%
-        dplyr::group_by(region, Population, density) %>%
-        dplyr::summarize(active_cases = sum(Cases_Reported)) %>%
-        dplyr::mutate(prov = "BC")
 
-    return(bc_covid_active)
-}
 
 create_active_sk_table <- function(sask_covid, sk_pop) {
     #clean up sask data

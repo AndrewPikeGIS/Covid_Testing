@@ -18,6 +18,8 @@ covid_app <- function() {
 
     bc_covid_data <- load_bc_data()
 
+    bc_active_cases <- create_active_bc_table(bc_covid_data)
+
     sk_covid_active <- load_sk_data()
 
     merged_covid_data <- clean_merge_active_cases_data(
