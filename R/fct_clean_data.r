@@ -4,7 +4,28 @@ clean_on_data <- function(ontario_covid, on_pop) {
         dplyr::mutate(
             prov = "ON",
             region = PHU_NAME) %>%
-        tidyr::drop_na(region)
+        tidyr::drop_na(region) %>%
+        dplyr::group_by(region) %>%
+        dplyr::mutate(
+            new_cases = ACTIVE_CASES - dplyr::lag(
+                ACTIVE_CASES, 1, default = NA
+                ) + RESOLVED_CASES,
+            new_cases = ifelse(
+                is.na(new_cases),
+                ACTIVE_CASES + RESOLVED_CASES,
+                new_cases),
+            new_cases = ifelse(
+                new_cases < 0,
+                0,
+                new_cases
+            )
+        ) %>%
+        dplyr::rename(
+            active_cases = ACTIVE_CASES,
+            resolved_cases = RESOLVED_CASES,
+            date = FILE_DATE) %>%
+        dplyr::ungroup()
+
 
     #fix the region names for the ontario population table
     on_pop <- on_pop %>%
@@ -18,13 +39,20 @@ clean_on_data <- function(ontario_covid, on_pop) {
         on_pop,
         by = "region")
 
+    return(ontario_covid)
+}
+
+create_active_on_table <- function(ontario_covid) {
+
     #filter the ontario data to active cases
     ontario_covid_active <- ontario_covid %>%
-        dplyr::filter(FILE_DATE == max(FILE_DATE)) %>%
+        dplyr::filter(date == max(date)) %>%
         dplyr::select(
             "prov",
             "region",
-            "ACTIVE_CASES",
+            "active_cases",
+            "new_cases",
+            "resolved_cases",
             "Population",
             "density")
 
@@ -41,7 +69,7 @@ add_prov <- function(prov, region) {
   return(paste(region, prov))
 }
 
-clean_ab_data <- function(alberta_covid, ab_pop) {
+create_active_ab_table <- function(alberta_covid, ab_pop) {
     #Fix alberta covid dataset for the canada wide merge
     alberta_covid <- alberta_covid %>%
         dplyr::mutate(
@@ -68,7 +96,7 @@ clean_ab_data <- function(alberta_covid, ab_pop) {
     return(alberta_covid_active)
 }
 
-clean_bc_data <- function(bc_covid, bc_pop) {
+create_active_bc_table <- function(bc_covid, bc_pop) {
 
     #fix the bc covid dataset
     bc_covid <- bc_covid %>%
@@ -98,7 +126,7 @@ clean_bc_data <- function(bc_covid, bc_pop) {
     return(bc_covid_active)
 }
 
-clean_sk_data <- function(sask_covid, sk_pop) {
+create_active_sk_table <- function(sask_covid, sk_pop) {
     #clean up sask data
     sask_covid <- sask_covid %>%
         dplyr::group_by(

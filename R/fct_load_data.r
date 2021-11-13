@@ -5,9 +5,9 @@ load_on_data <- function() {
 
     on_pop <- readr::read_csv("data/ON_pop.csv")
 
-    on_covid_active <- clean_on_data(ontario_covid, on_pop)
+    ontario_covid_data <- clean_on_data(ontario_covid, on_pop)
 
-    return(on_covid_active)
+    return(ontario_covid_data)
 }
 
 load_ab_data <- function() {
