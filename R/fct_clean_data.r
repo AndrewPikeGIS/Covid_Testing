@@ -48,7 +48,7 @@ clean_on_daily_table <- function(on_daily_covid_data) {
     piv_cols <- ontario_daily_col_names()[-1]
 
     on_daily_covid_data_long <- on_daily_covid_data %>%
-        pivot_longer(
+        tidyr::pivot_longer(
             cols = all_of(piv_cols),
             names_to = "region",
             values_to = "cases_reported")
@@ -56,7 +56,7 @@ clean_on_daily_table <- function(on_daily_covid_data) {
     startdate <- min(on_daily_covid_data_long$Date)
 
     on_daily_covid_data_long <- on_daily_covid_data_long %>%
-        mutate(
+        dplyr::mutate(
             day_from_start = as.numeric(day_count(startdate, Date))
         )
     return(on_daily_covid_data_long)
@@ -141,7 +141,7 @@ clean_bc_data <- function(bc_covid, bc_pop) {
     return(bc_covid)
 }
 
-create_active_sk_table <- function(sask_covid, sk_pop) {
+clean_sk_data <- function(sask_covid, sk_pop) {
     #clean up sask data
     sask_covid <- sask_covid %>%
         dplyr::group_by(

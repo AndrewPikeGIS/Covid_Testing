@@ -41,13 +41,7 @@ create_active_bc_table <- function(bc_covid) {
 
 create_active_sk_table <- function(sask_covid_data) {
     sask_covid_active <- sask_covid_data %>%
-        dplyr::filter(Date == max(Date)) %>%
-        dplyr::select(
-            "prov",
-            "region",
-            "ACTIVE_CASES",
-            "Population",
-            "density")
+        dplyr::filter(date == max(date)) %>%
 
     return(sask_covid_active)
 }
