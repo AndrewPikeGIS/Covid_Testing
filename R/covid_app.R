@@ -14,6 +14,8 @@ covid_app <- function() {
 
     alberta_active_cases <- create_active_ab_table(alberta_covid_data)
 
+    alberta_daily_covid_data <- create_ab_daily_cases_table(alberta_covid_data)
+
     bc_covid_active <- load_bc_data()
 
     sk_covid_active <- load_sk_data()

@@ -103,22 +103,24 @@ create_active_ab_table <- function(alberta_covid) {
     return(alberta_covid_active)
 }
 
-day_count <- function(dateStart, dateEnd) {
-        x <- interval(dateStart,dateEnd)
-        return(abs(x %/% days(1)))
+day_count <- function(date_start, date_end) {
+        x <- lubridate::interval(date_start, date_end)
+        return(abs(x %/% lubridate::days(1)))
     }
 
 create_ab_daily_cases_table <- function(alberta_covid_data) {
 
     ab_daily_cases <- Alberta_COVID %>%
-        group_by(`Date reported`, region) %>%
-        summarize(cases_reported = n()) %>%
-        mutate(date = `Date reported`)
+        dplyr::group_by(`Date reported`, region) %>%
+        dplyr::summarize(cases_reported = n()) %>%
+        dplyr::mutate(date = `Date reported`)
 
     startdate <- min(ab_daily_cases$date)
 
     ab_daily_cases <- ab_daily_cases %>%
-        mutate(day_from_start = as.numeric(day_count(startdate, date))) 
+        dplyr::mutate(day_from_start = as.numeric(day_count(startdate, date)))
+        dplyr::select(-c(`Date reported`)) %>%
+        dplyr::ungroup()
 }
 
 create_active_bc_table <- function(bc_covid, bc_pop) {
