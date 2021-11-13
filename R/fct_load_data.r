@@ -1,8 +1,9 @@
 load_daily_on_data <- function() {
     ontario_covid_daily <- readr::read_csv("https://data.ontario.ca/dataset/f4f86e54-872d-43f8-8a86-3892fd3cb5e6/resource/8a88fe6d-d8fb-41a3-9d04-f0550a44999f/download/daily_change_in_cases_by_phu.csv") # nolint
 
-    ontario_covid_daily <- clean_on_daily_table()
-    
+    ontario_covid_daily <- clean_on_daily_table(ontario_covid_daily)
+
+    return(ontario_covid_daily)
 }
 
 load_on_data <- function() {

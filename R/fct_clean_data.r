@@ -43,25 +43,24 @@ clean_on_data <- function(ontario_covid, on_pop) {
 }
 
 clean_on_daily_table <- function(on_daily_covid_data) {
-    colnames(Ontario_COVID_Daily) <- colname
+    colnames(on_daily_covid_data) <- ontario_daily_col_names()
 
-    Ontario_COVID_DailyR <- Ontario_COVID_Daily %>%
-        select(ON_cols)
+    piv_cols <- ontario_daily_col_names()[-1]
 
-    piv_cols <- ON_cols[-1]
-
-    ON_COVID_Daily_piv <- Ontario_COVID_DailyR %>%
+    on_daily_covid_data_long <- on_daily_covid_data %>%
         pivot_longer(
             cols = all_of(piv_cols),
             names_to = "region",
-            values_to = "cases_reported") 
+            values_to = "cases_reported")
 
-    startdate <- min(ON_COVID_Daily_piv$Date) 
+    startdate <- min(on_daily_covid_data_long$Date)
 
-    ON_COVID_Daily_piv <- ON_COVID_Daily_piv %>%
-        mutate(day_from_start = as.numeric(day_count(startdate, Date)))
+    on_daily_covid_data_long <- on_daily_covid_data_long %>%
+        mutate(
+            day_from_start = as.numeric(day_count(startdate, Date))
+        )
+    return(on_daily_covid_data_long)
 }
-
 
 ab_age <- function(age_in) {
   age_split <- strsplit(age_in, "-")[[1]][1]

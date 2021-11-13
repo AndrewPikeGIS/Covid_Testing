@@ -10,6 +10,8 @@ covid_app <- function() {
 
     ontario_active_cases <- create_active_on_table(ontario_covid_data)
 
+    ontario_covid_daily_data <- load_daily_on_data()
+
     alberta_covid_data <- load_ab_data()
 
     alberta_active_cases <- create_active_ab_table(alberta_covid_data)

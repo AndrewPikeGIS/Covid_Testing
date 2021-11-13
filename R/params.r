@@ -1,4 +1,4 @@
-on_cols_for_plotting <- function() { 
+on_cols_for_plotting <- function() {
     on_cols_for_plot <- c(
         "Date",
         "Ottawa_Public_Health",
@@ -8,6 +8,7 @@ on_cols_for_plotting <- function() {
         "Halton_Region_Health_Department",
         "Durham_Region_Health_Department",
         "York_Region_Public_Health_Services")
+    return(on_cols_for_plot)
 }
 
 ontario_daily_col_names <- function() {
