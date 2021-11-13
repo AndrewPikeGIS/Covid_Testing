@@ -98,7 +98,7 @@ create_active_ab_table <- function(alberta_covid) {
     alberta_covid_active <- alberta_covid %>%
         dplyr::filter(`Case status` == "Active") %>%
         dplyr::group_by(region, Population, density) %>%
-        dplyr::summarize(ACTIVE_CASES = dplyr::n()) %>%
+        dplyr::summarize(active_cases = dplyr::n()) %>%
         dplyr::mutate(prov = "AB")
     return(alberta_covid_active)
 }
@@ -121,16 +121,20 @@ create_ab_daily_cases_table <- function(alberta_covid_data) {
         dplyr::mutate(day_from_start = as.numeric(day_count(startdate, date)))
         dplyr::select(-c(`Date reported`)) %>%
         dplyr::ungroup()
+    return(ab_daily_cases)
 }
 
-create_active_bc_table <- function(bc_covid, bc_pop) {
+clean_bc_data <- function(bc_covid, bc_pop) {
 
     #fix the bc covid dataset
     bc_covid <- bc_covid %>%
         dplyr::mutate(
             prov = "BC",
             region = HA,
-            ACTIVE_CASES = Cases_Reported)
+            ACTIVE_CASES = Cases_Reported) %>%
+        dplyr::rename(
+            date = Date,
+            )
 
     bc_pop <- bc_pop %>%
         dplyr::mutate(density = Population / area)
@@ -140,14 +144,18 @@ create_active_bc_table <- function(bc_covid, bc_pop) {
         bc_covid,
         bc_pop)
 
+    return(bc_covid)
+}
+
+create_active_bc_table <- function(bc_covid) {
     #filter the bc dat to the best approximation of active cases
     bc_covid_active <- bc_covid %>%
         dplyr::filter(
-            Date >= (max(Date) - lubridate::days(14)) &
+            Date >= (max(date) - lubridate::days(14)) &
             region != "All" &
             HSDA != "All") %>%
         dplyr::group_by(region, Population, density) %>%
-        dplyr::summarize(ACTIVE_CASES = sum(Cases_Reported)) %>%
+        dplyr::summarize(active_cases = sum(Cases_Reported)) %>%
         dplyr::mutate(prov = "BC")
 
     return(bc_covid_active)
