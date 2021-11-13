@@ -141,8 +141,6 @@ clean_bc_data <- function(bc_covid, bc_pop) {
     return(bc_covid)
 }
 
-
-
 create_active_sk_table <- function(sask_covid, sk_pop) {
     #clean up sask data
     sask_covid <- sask_covid %>%
@@ -150,38 +148,29 @@ create_active_sk_table <- function(sask_covid, sk_pop) {
             Date,
             Region) %>%
         dplyr::summarize(
-            New_Cases = sum(`New Cases`),
-            Active_Cases = sum(`Active Cases`)) %>%
-        dplyr::ungroup()
-
-    colnames(sask_covid) <- c(
-        "Date",
-        "region",
-        "New_Cases",
-        "ACTIVE_CASES")
-
-    sask_covid_active <- sask_covid %>%
-        dplyr::filter(Date == max(Date))
+            new_cases = sum(`New Cases`),
+            active_cases = sum(`Active Cases`),
+            resolved_cases = sum(`Recovered Cases`),
+            inpatient_hospitalizations = sum(`Inpatient Hospitalizations`),
+            icu_hospitalizations = sum(`ICU Hospitalizations`),
+            total_cases =  sum(`Total Cases`)) %>%
+        dplyr::ungroup() %>%
+        dplyr::rename(
+            date = Date,
+            region = Region
+        )
 
     sk_pop <- sk_pop %>%
         dplyr::mutate(
             density = Population / area,
             prov = "SK")
 
-    sask_covid_active <- dplyr::left_join(
-        sask_covid_active,
+    sask_covid_data <- dplyr::left_join(
+        sask_covid,
         sk_pop)
-
-    sask_covid_active <- sask_covid_active %>%
-        dplyr::select(
-            "prov",
-            "region",
-            "ACTIVE_CASES",
-            "Population",
-            "density")
-
-    return(sask_covid_active)
+    return(sask_covid_data)
 }
+
 
 clean_merge_active_cases_data <- function(alberta_covid_active,
                                    bc_covid_active,
