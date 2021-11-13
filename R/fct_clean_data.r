@@ -104,16 +104,17 @@ day_count <- function(date_start, date_end) {
 
 create_ab_daily_cases_table <- function(alberta_covid_data) {
 
-    ab_daily_cases <- Alberta_COVID %>%
+    ab_daily_cases <- alberta_covid_data %>%
         dplyr::group_by(`Date reported`, region) %>%
-        dplyr::summarize(cases_reported = n()) %>%
-        dplyr::mutate(date = `Date reported`)
+        dplyr::summarize(cases_reported = dplyr::n()) %>%
+        dplyr::rename(date = `Date reported`)
 
     startdate <- min(ab_daily_cases$date)
 
     ab_daily_cases <- ab_daily_cases %>%
-        dplyr::mutate(day_from_start = as.numeric(day_count(startdate, date)))
-        dplyr::select(-c(`Date reported`)) %>%
+        dplyr::mutate(
+            day_from_start = as.numeric(day_count(startdate, date))
+        ) %>%
         dplyr::ungroup()
     return(ab_daily_cases)
 }
@@ -188,15 +189,15 @@ clean_merge_active_cases_data <- function(alberta_covid_active,
         tidyr::drop_na(Population) %>%
         dplyr::mutate(
             region = as.factor(add_prov(prov, region)),
-            cases_per_100k = ACTIVE_CASES / (Population / 100000),
-            cases_times_density = ACTIVE_CASES * density) %>%
-        dplyr::filter(ACTIVE_CASES > 0) %>%
-        dplyr::arrange(desc(ACTIVE_CASES))
+            cases_per_100k = active_cases / (Population / 100000),
+            cases_times_density = active_cases * density) %>%
+        dplyr::filter(active_cases > 0) %>%
+        dplyr::arrange(desc(active_cases))
 
     merge_covid_active$region <- factor(
         merge_covid_active$region,
         levels = unique(merge_covid_active$region)
-        [order(merge_covid_active$ACTIVE_CASES, decreasing = TRUE)])
+        [order(merge_covid_active$active_cases, decreasing = TRUE)])
 
     return(merge_covid_active)
 }

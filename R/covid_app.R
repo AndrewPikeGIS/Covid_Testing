@@ -29,8 +29,8 @@ covid_app <- function() {
     merged_covid_data <- clean_merge_active_cases_data(
         alberta_active_cases,
         ontario_active_cases,
-        create_active_on_table,
-        create_active_sk_table)
+        bc_active_cases,
+        sk_active_cases)
 
     ui <- bs4Dash::dashboardPage(
         fullscreen = TRUE,
