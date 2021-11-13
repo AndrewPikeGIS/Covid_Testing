@@ -8,11 +8,12 @@
 covid_app <- function() {
     ontario_covid_data <- load_on_data()
 
-    ontario_active_cases_data <- create_active_on_table(
-        ontario_covid_data
-    )
+    ontario_active_cases_data <- create_active_on_table(ontario_covid_data)
 
-    ab_covid_active <- load_ab_data()
+    alberta_covid_data <- load_ab_data()
+
+    alberta_active_cases <- create_active_ab_table(alberta_covid_data)
+
     bc_covid_active <- load_bc_data()
 
     sk_covid_active <- load_sk_data()

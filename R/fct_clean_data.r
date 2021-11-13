@@ -69,7 +69,8 @@ add_prov <- function(prov, region) {
   return(paste(region, prov))
 }
 
-create_active_ab_table <- function(alberta_covid, ab_pop) {
+clean_ab_data <- function(alberta_covid, ab_pop) {
+
     #Fix alberta covid dataset for the canada wide merge
     alberta_covid <- alberta_covid %>%
         dplyr::mutate(
@@ -87,6 +88,12 @@ create_active_ab_table <- function(alberta_covid, ab_pop) {
         ab_pop,
         by = "region")
 
+    #need to aggregate to daily new cases etc.
+
+    return(alberta_covid)
+}
+
+create_active_ab_table <- function(alberta_covid) {
     #filter the AB data to active cases
     alberta_covid_active <- alberta_covid %>%
         dplyr::filter(`Case status` == "Active") %>%
@@ -94,6 +101,24 @@ create_active_ab_table <- function(alberta_covid, ab_pop) {
         dplyr::summarize(ACTIVE_CASES = dplyr::n()) %>%
         dplyr::mutate(prov = "AB")
     return(alberta_covid_active)
+}
+
+day_count <- function(dateStart, dateEnd) {
+        x <- interval(dateStart,dateEnd)
+        return(abs(x %/% days(1)))
+    }
+
+create_ab_daily_cases_table <- function(alberta_covid_data) {
+
+    ab_daily_cases <- Alberta_COVID %>%
+        group_by(`Date reported`, region) %>%
+        summarize(cases_reported = n()) %>%
+        mutate(date = `Date reported`)
+
+    startdate <- min(ab_daily_cases$date)
+
+    ab_daily_cases <- ab_daily_cases %>%
+        mutate(day_from_start = as.numeric(day_count(startdate, date))) 
 }
 
 create_active_bc_table <- function(bc_covid, bc_pop) {

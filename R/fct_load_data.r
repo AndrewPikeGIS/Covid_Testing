@@ -15,9 +15,9 @@ load_ab_data <- function() {
 
     ab_pop <- readr::read_csv("data/AB_pop.csv")
 
-    ab_covid_active <- clean_ab_data(alberta_covid, ab_pop)
+    alberta_covid_data <- clean_ab_data(alberta_covid, ab_pop)
 
-    return(ab_covid_active)
+    return(alberta_covid_data)
 }
 
 load_bc_data <- function() {

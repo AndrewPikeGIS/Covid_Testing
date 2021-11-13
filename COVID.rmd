@@ -417,8 +417,6 @@ Sth <-AB_Daily %>%  run_loess(ab_regions[[5]])
 
 AB <- bind_rows(Cal, ED, Cen, Nrth, Sth)
 
-ab_regions <- c("EDMONTON ZONE", "CENTRAL ZONE", "NORTH ZONE", "SOUTH ZONE")
-
 figAB_Daily <- AB %>%
   group_by(region) %>%
   plot_ly(x = ~date,
