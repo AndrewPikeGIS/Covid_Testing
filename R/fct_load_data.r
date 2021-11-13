@@ -25,9 +25,9 @@ load_bc_data <- function() {
 
     bc_pop <- readr::read_csv("data/BC_pop.csv")
 
-    bc_covid_active <- clean_bc_data(bc_covid, bc_pop)
+    bc_covid_data <- clean_bc_data(bc_covid, bc_pop)
 
-    return(bc_covid_active)
+    return(bc_covid_data)
 }
 
 load_sk_data <- function() {

@@ -8,7 +8,7 @@
 covid_app <- function() {
     ontario_covid_data <- load_on_data()
 
-    ontario_active_cases_data <- create_active_on_table(ontario_covid_data)
+    ontario_active_cases <- create_active_on_table(ontario_covid_data)
 
     alberta_covid_data <- load_ab_data()
 
@@ -16,13 +16,13 @@ covid_app <- function() {
 
     alberta_daily_covid_data <- create_ab_daily_cases_table(alberta_covid_data)
 
-    bc_covid_active <- load_bc_data()
+    bc_covid_data <- load_bc_data()
 
     sk_covid_active <- load_sk_data()
 
     merged_covid_data <- clean_merge_active_cases_data(
-        create_active_ab_table,
-        create_active_bc_table,
+        alberta_active_cases,
+        ontario_active_cases,
         create_active_on_table,
         create_active_sk_table)
 
