@@ -511,7 +511,7 @@ ON_COVID_Daily_piv <- Ontario_COVID_DailyR %>%
 startdate <- min(ON_COVID_Daily_piv$Date) 
 
 ON_COVID_Daily_piv <- ON_COVID_Daily_piv %>%
-  mutate(day_from_start = as.numeric(day_count(startdate, Date))) 
+  mutate(day_from_start = as.numeric(day_count(startdate, Date)))
 
 Tor <- ON_COVID_Daily_piv %>% run_loess(reg_in = "Toronto_Public_Health")
 Ham <- ON_COVID_Daily_piv %>% run_loess(reg_in = "Hamilton_Public_Health_Services")
