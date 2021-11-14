@@ -67,7 +67,9 @@ covid_app <- function() {
                             ),
                             column(
                                 width = 9,
-                                verbatimTextOutput("selected")
+                                fluidRow(
+                                    verbatimTextOutput("selected")
+                                )
                             )
                         )
                     )
@@ -87,7 +89,7 @@ covid_app <- function() {
         )
 
         output$selected <- renderPrint({
-            print(selected_regions)
+            print(selected_regions())
         })
     }
 
