@@ -32,6 +32,8 @@ covid_app <- function() {
         bc_active_cases,
         sk_active_cases)
 
+    list_of_regions <- create_list_of_regions(merged_active_cases)
+
     ui <- bs4Dash::dashboardPage(
         fullscreen = TRUE,
         bs4Dash::dashboardHeader(title = "Covid 19 Case Counts"),
@@ -55,8 +57,17 @@ covid_app <- function() {
                     tabName = "covid_case_count",
                     fluidRow(
                         bs4Dash::box(
-                            title = "Covid-19 Case Count",
-                            width = 12
+                            title = "Covid-19 Cases",
+                            width = 12,
+                            column(
+                                row(
+                                    selectInput(
+                                        "region",
+                                        "Region:",
+                                        list_of_regions
+                                    )
+                                )
+                            )
                         )
                     )
                 ),
@@ -76,7 +87,6 @@ covid_app <- function() {
             merged_covid_data
         )
     }
-
 
     shinyApp(ui, server)
 }

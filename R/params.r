@@ -52,3 +52,8 @@ ontario_daily_col_names <- function() {
         "Total")
     return(on_colnames)
 }
+
+create_list_of_regions <- function(merged_active_cases) {
+    list_of_regions <- merged_active_cases[[region]]
+    return(list_of_regions)
+}
