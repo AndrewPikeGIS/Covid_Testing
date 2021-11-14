@@ -23,6 +23,9 @@ filter_for_active_reactable <- function(input_df) {
 
 build_active_case_reactable <- function(input_df) {
     input_df %>%
+        dplyr::arrange(
+            prov,
+            region) %>%
         reactable::reactable(
             pagination = FALSE,
             filterable = FALSE,

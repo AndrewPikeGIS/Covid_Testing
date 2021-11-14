@@ -38,7 +38,7 @@ load_bc_data <- function() {
 
 load_sk_data <- function() {
     #build auto checker to grab the correct csv.
-    sask_covid <- readr::read_csv("https://dashboard.saskatchewan.ca/export/cases/4050.csv") # nolint
+    sask_covid <- readr::read_csv("https://dashboard.saskatchewan.ca/export/cases/4055.csv") # nolint
 
     sk_pop <- readr::read_csv("data/SK_pop.csv")
 
