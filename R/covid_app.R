@@ -26,7 +26,7 @@ covid_app <- function() {
 
     sk_active_cases <- create_active_sk_table(sk_covid_data)
 
-    merged_covid_data <- clean_merge_active_cases_data(
+    merged_active_cases <- clean_merge_active_cases_data(
         alberta_active_cases,
         ontario_active_cases,
         bc_active_cases,
