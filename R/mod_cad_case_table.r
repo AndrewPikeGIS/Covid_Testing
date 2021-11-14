@@ -14,5 +14,7 @@ mod_cad_case_table_server <- function(id, active_case_table) {
         current_selection <- reactive(
             reactable::getReactableState("table", "selected")
         )
+
+        #filter to regions
     })
 }
