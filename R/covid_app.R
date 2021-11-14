@@ -69,7 +69,8 @@ covid_app <- function() {
                     )
                 ),
                 bs4Dash::tabItem(
-                    tabName = "daily_cases"
+                    tabName = "daily_cases",
+                    column(width = 12)
                 )
             )
         )

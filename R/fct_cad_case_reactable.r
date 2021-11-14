@@ -17,8 +17,7 @@ filter_for_active_reactable <- function(input_df) {
         dplyr::ungroup() %>%
         dplyr::select(
             c("prov",
-            "region")) %>%
-        dplyr::arrange(prov)
+            "region"))
     return(output_df)
 }
 
@@ -26,7 +25,7 @@ build_active_case_reactable <- function(input_df) {
     input_df %>%
         reactable::reactable(
             pagination = FALSE,
-            filterable = TRUE,
+            filterable = FALSE,
             highlight = TRUE,
             selection = "multiple",
             onClick = "select",
@@ -38,6 +37,7 @@ build_active_case_reactable <- function(input_df) {
             ),
             defaultColDef =  reactable::colDef(
                 align = "center"
-            )
+            ),
+            defaultSorted = c("prov", "region")
         )
 }
