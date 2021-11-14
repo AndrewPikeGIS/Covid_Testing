@@ -3,11 +3,12 @@ mod_cad_case_table_ui <- function(id) {
     reactable::reactableOutput(ns("table"), height = "90vh")
 }
 
-mod_cad_case_table_server <- function(id, cad_case_table) {
+mod_cad_case_table_server <- function(id, active_case_table) {
     moduleServer(id, function(input, output, session) {
         output$table <- reactable::renderReactable(
-            cad_case_table %>%
-                build_cad_case_reactable()
+            active_case_table %>%
+                filter_for_active_reactable() %>%
+                build_active_case_reactable()
         )
 
         current_selection <- reactive(

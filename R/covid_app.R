@@ -32,7 +32,7 @@ covid_app <- function() {
         bc_active_cases,
         sk_active_cases)
 
-    list_of_regions <- create_list_of_regions(merged_active_cases)
+    #list_of_regions <- create_list_of_regions(merged_active_cases) nolint
 
     ui <- bs4Dash::dashboardPage(
         fullscreen = TRUE,
@@ -40,14 +40,14 @@ covid_app <- function() {
         bs4Dash::dashboardSidebar(
             bs4Dash::sidebarMenu(
                 bs4Dash::menuItem(
-                    "Covid Case Count",
+                    "Active Covid Cases",
                     tabName = "covid_case_count",
                     icon = icon("chart-area")
                 ),
                 bs4Dash::menuItem(
-                    "AB, BC, ON, SK Cases Table",
-                    tabName = "case_table",
-                    icon = icon("th")
+                    "Daily Cases",
+                    tabName = "daily_cases",
+                    icon = icon("chart-line")
                 )
             )
         ),
@@ -60,23 +60,16 @@ covid_app <- function() {
                             title = "Covid-19 Cases",
                             width = 12,
                             column(
-                                row(
-                                    selectInput(
-                                        "region",
-                                        "Region:",
-                                        list_of_regions,
-                                        multiple = TRUE
-                                    )
-                                )
+                                fluidRow(
+                                    mod_cad_case_table_ui("case_table")
+                                ),
+                                width = 4
                             )
                         )
                     )
                 ),
                 bs4Dash::tabItem(
-                    tabName = "case_table",
-                    fillPage(
-                        mod_cad_case_table_ui("case_table")
-                    )
+                    tabName = "daily_cases"
                 )
             )
         )
@@ -85,7 +78,7 @@ covid_app <- function() {
     server <- function(input, output, session) {
         mod_cad_case_table_server(
             "case_table",
-            merged_covid_data
+            merged_active_cases
         )
     }
 
