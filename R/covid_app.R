@@ -64,7 +64,8 @@ covid_app <- function() {
                                     selectInput(
                                         "region",
                                         "Region:",
-                                        list_of_regions
+                                        list_of_regions,
+                                        multiple = TRUE
                                     )
                                 )
                             )
