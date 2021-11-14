@@ -14,7 +14,8 @@ reactable_theme <- function() {
 
 filter_for_active_reactable <- function(input_df) {
     output_df <- input_df %>%
-        select(
+        dplyr::ungroup() %>%
+        dplyr::select(
             c("prov",
             "region"))
     return(output_df)
@@ -23,7 +24,7 @@ filter_for_active_reactable <- function(input_df) {
 build_active_case_reactable <- function(input_df) {
     input_df %>%
         reactable::reactable(
-            pagination = TRUE,
+            pagination = FALSE,
             filterable = TRUE,
             highlight = TRUE,
             selection = "multiple",

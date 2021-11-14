@@ -63,7 +63,7 @@ covid_app <- function() {
                                 fluidRow(
                                     mod_cad_case_table_ui("case_table")
                                 ),
-                                width = 4
+                                width = 3
                             )
                         )
                     )
