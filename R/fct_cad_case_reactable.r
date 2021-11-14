@@ -17,7 +17,8 @@ filter_for_active_reactable <- function(input_df) {
         dplyr::ungroup() %>%
         dplyr::select(
             c("prov",
-            "region"))
+            "region")) %>%
+        dplyr::arrange(prov)
     return(output_df)
 }
 
