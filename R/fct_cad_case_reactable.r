@@ -38,6 +38,13 @@ build_active_case_reactable <- function(input_df) {
             defaultColDef =  reactable::colDef(
                 align = "center"
             ),
-            defaultSorted = c("prov", "region")
+            defaultSorted = c("prov", "region"),
+            defaultSelected = c(
+                1,
+                2,
+                3,
+                4,
+                5
+            )
         )
 }

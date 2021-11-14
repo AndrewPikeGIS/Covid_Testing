@@ -64,6 +64,10 @@ covid_app <- function() {
                                     mod_cad_case_table_ui("case_table")
                                 ),
                                 width = 3
+                            ),
+                            column(
+                                width = 9,
+                                verbatimTextOutput("selected")
                             )
                         )
                     )
@@ -77,10 +81,14 @@ covid_app <- function() {
     )
 
     server <- function(input, output, session) {
-        mod_cad_case_table_server(
+        selected_regions <- mod_cad_case_table_server(
             "case_table",
             merged_active_cases
         )
+
+        output$selected <- renderPrint({
+            print(selected_regions)
+        })
     }
 
     shinyApp(ui, server)
