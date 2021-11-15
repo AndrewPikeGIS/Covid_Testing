@@ -1,9 +1,9 @@
-mod_cad_case_table_ui <- function(id) {
+mod_active_cases_table_ui <- function(id) {
     ns <- NS(id)
     reactable::reactableOutput(ns("table"), height = "90vh")
 }
 
-mod_cad_case_table_server <- function(id, active_case_table) {
+mod_active_cases_table_server <- function(id, active_case_table) {
     moduleServer(id, function(input, output, session) {
         output$table <- reactable::renderReactable(
             active_case_table %>%
@@ -16,7 +16,7 @@ mod_cad_case_table_server <- function(id, active_case_table) {
         )
 
         selected_regions <- reactive(
-            active_case_table$region[current_selection()]
+            as.vector(active_case_table[current_selection(), ]$region)
         )
 
         return(selected_regions)

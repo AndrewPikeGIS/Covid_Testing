@@ -42,7 +42,7 @@ covid_app <- function() {
                 bs4Dash::menuItem(
                     "Active Covid Cases",
                     tabName = "covid_case_count",
-                    icon = icon("chart-area")
+                    icon = icon("chart-bar")
                 ),
                 bs4Dash::menuItem(
                     "Daily Cases",
@@ -58,8 +58,8 @@ covid_app <- function() {
                     fillRow(
                         flex = c(1, 2),
                         bs4Dash::box(
-                            title = "Covid-19 Cases",
-                            mod_cad_case_table_ui("case_table"),
+                            title = "Select Regions",
+                            mod_active_cases_table_ui("case_table"),
                             width = 12
                         ),
                         bs4Dash::box(
@@ -81,7 +81,7 @@ covid_app <- function() {
     )
 
     server <- function(input, output, session) {
-        selected_regions <- mod_cad_case_table_server(
+        selected_regions <- mod_active_cases_table_server(
             "case_table",
             merged_active_cases
         )

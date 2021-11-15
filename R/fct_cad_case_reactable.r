@@ -1,3 +1,4 @@
+#decide if I keep this
 reactable_theme <- function() {
     options(reactable.theme = reactableTheme(
     color = "hsl(233, 9%, 87%)",
