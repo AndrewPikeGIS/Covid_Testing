@@ -55,28 +55,26 @@ covid_app <- function() {
             bs4Dash::tabItems(
                 bs4Dash::tabItem(
                     tabName = "covid_case_count",
-                    fluidRow(
+                    fillRow(
+                        flex = c(1, 2),
                         bs4Dash::box(
                             title = "Covid-19 Cases",
-                            width = 12,
-                            column(
-                                fluidRow(
-                                    mod_cad_case_table_ui("case_table")
-                                ),
-                                width = 3
-                            ),
-                            column(
-                                width = 9,
-                                fluidRow(
-                                    verbatimTextOutput("selected")
-                                )
-                            )
+                            mod_cad_case_table_ui("case_table"),
+                            width = 12
+                        ),
+                        bs4Dash::box(
+                            title = "Active Covid-19 Cases",
+                            verbatimTextOutput("selected"),
+                            width = 12
                         )
                     )
                 ),
                 bs4Dash::tabItem(
                     tabName = "daily_cases",
-                    column(width = 12)
+                    bs4Dash::box(
+                        title = "Covid-19 Cases per Day",
+                        width = 12
+                    )
                 )
             )
         )
