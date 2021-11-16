@@ -15,10 +15,6 @@ mod_active_cases_table_server <- function(id, active_case_table) {
             reactable::getReactableState("table", "selected")
         )
 
-        selected_table <- reactive(
-            active_case_table[current_selection(), ]
-        )
-
-        return(selected_table)
+        return(current_selection)
     })
 }
