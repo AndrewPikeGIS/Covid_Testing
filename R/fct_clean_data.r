@@ -194,11 +194,11 @@ clean_merge_active_cases_data <- function(alberta_covid_active,
         dplyr::filter(active_cases > 0) %>%
         dplyr::arrange(prov, region)
 
-    merge_covid_active$region <- factor(
-        merge_covid_active$region,
-        levels = unique(merge_covid_active$region)
-        [order(merge_covid_active$region, decreasing = TRUE)]
-    )
+    #merge_covid_active$region <- factor(
+    #    merge_covid_active$region,
+    #    levels = unique(merge_covid_active$region)
+    #    [order(merge_covid_active$region, decreasing = TRUE)]
+    #)
 
     return(merge_covid_active)
 }
