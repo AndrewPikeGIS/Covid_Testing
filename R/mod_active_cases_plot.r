@@ -1,6 +1,6 @@
 mod_active_cases_plot_ui <- function(id) {
     ns <- NS(id)
-    plotly::plotlyOutput(ns("active_case_plot"), height = "90vh")
+    plotly::plotlyOutput(ns("active_case_plot"), height = "85vh")
 }
 
 mod_active_cases_plot_server <- function(id,

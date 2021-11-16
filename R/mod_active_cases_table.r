@@ -1,6 +1,6 @@
 mod_active_cases_table_ui <- function(id) {
     ns <- NS(id)
-    reactable::reactableOutput(ns("table"), height = "90vh")
+    reactable::reactableOutput(ns("table"), height = "85vh")
 }
 
 mod_active_cases_table_server <- function(id, active_case_table) {

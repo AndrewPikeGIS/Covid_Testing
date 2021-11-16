@@ -68,10 +68,6 @@ ab_age <- function(age_in) {
   return(age)
 }
 
-add_prov <- function(prov, region) {
-  return(paste(region, prov))
-}
-
 clean_ab_data <- function(alberta_covid, ab_pop) {
 
     #Fix alberta covid dataset for the canada wide merge
@@ -188,7 +184,7 @@ clean_merge_active_cases_data <- function(alberta_covid_active,
     merge_covid_active <- merge_covid_active %>%
         tidyr::drop_na(Population) %>%
         dplyr::mutate(
-            region = as.factor(add_prov(prov, region)),
+            region = paste(region, prov),
             cases_per_100k = active_cases / (Population / 100000),
             cases_times_density = active_cases * density) %>%
         dplyr::filter(active_cases > 0) %>%
