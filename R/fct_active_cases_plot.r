@@ -1,4 +1,15 @@
-filter_to_selected_regions <- function(active_case_table, selected_regions) {
-    table_out <- active_case_table %>%
-        dplyr::filter(region %in% selected_regions)
+build_empty_plot <- function(plot_name) {
+    fig <- plotly::plot_ly(name = plot_name)
+    return(fig)
+}
+
+add_active_case_bar_trace <- function(fig, active_case_table) {
+    fig <- fig %>%
+        plotly::add_trace(
+            type = "bar",
+            x = active_case_table$region,
+            y = active_case_table$active_cases
+        )
+
+    return(fig)
 }

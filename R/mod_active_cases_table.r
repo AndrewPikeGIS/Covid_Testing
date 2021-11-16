@@ -15,10 +15,10 @@ mod_active_cases_table_server <- function(id, active_case_table) {
             reactable::getReactableState("table", "selected")
         )
 
-        selected_regions <- reactive(
-            as.vector(active_case_table[current_selection(), ]$region)
+        selected_table <- reactive(
+            active_case_table[current_selection(), ]
         )
 
-        return(selected_regions)
+        return(selected_table)
     })
 }

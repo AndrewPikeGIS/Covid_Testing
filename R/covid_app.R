@@ -64,7 +64,7 @@ covid_app <- function() {
                         ),
                         bs4Dash::box(
                             title = "Active Covid-19 Cases",
-                            verbatimTextOutput("selected"),
+                            mod_active_cases_plot_ui("active_plot"),
                             width = 12
                         )
                     )
@@ -81,14 +81,14 @@ covid_app <- function() {
     )
 
     server <- function(input, output, session) {
-        selected_regions <- mod_active_cases_table_server(
+        selected_table <- mod_active_cases_table_server(
             "case_table",
             merged_active_cases
         )
 
-        output$selected <- renderPrint({
-            print(selected_regions())
-        })
+        mod_active_cases_plot_server(
+            "active_plot",
+            selected_table())
     }
 
     shinyApp(ui, server)
