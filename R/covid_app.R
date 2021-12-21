@@ -12,25 +12,42 @@ covid_app <- function() {
 
     ontario_covid_daily_data <- load_daily_on_data()
 
+    ontario_covid_daily_data <- run_loess(ontario_covid_daily_data)
+
     alberta_covid_data <- load_ab_data()
 
     alberta_active_cases <- create_active_ab_table(alberta_covid_data)
 
     alberta_daily_covid_data <- create_ab_daily_cases_table(alberta_covid_data)
 
+    alberta_daily_covid_data <- run_loess(alberta_daily_covid_data)
+
     bc_covid_data <- load_bc_data()
 
     bc_active_cases <- create_active_bc_table(bc_covid_data)
 
+    bc_covid_daily <- clean_bc_for_daily_plt(bc_covid_data)
+
     sk_covid_data <- load_sk_data()
 
-    sk_active_cases <- create_active_sk_table(sk_covid_data)
+    sk_actve_cases <- create_active_sk_table(sk_covid_data)
+
+    sk_covid_daily_data <- run_loess(sk_covid_data)
 
     merged_active_cases <- clean_merge_active_cases_data(
         alberta_active_cases,
         ontario_active_cases,
         bc_active_cases,
-        sk_active_cases)
+        sk_actve_cases)
+
+    merged_daily_table <- merge_daily_covid_tables(
+        alberta_daily_covid_data,
+        bc_covid_daily,
+        ontario_covid_daily_data,
+        sk_covid_daily_data
+    )
+
+    #load("data\\merged_cases.rda")
 
     #list_of_regions <- create_list_of_regions(merged_active_cases) nolint
 
@@ -62,19 +79,20 @@ covid_app <- function() {
                             mod_active_cases_table_ui("case_table"),
                             width = 12
                         ),
-                        bs4Dash::box(
-                            title = "Active Covid-19 Cases",
-                            #tableOutput("printtable"),
-                            mod_active_cases_plot_ui("active_plot"),
+                        bs4Dash::tabBox(
+                            tabPanel(
+                                title = "Active Covid-19 Cases",
+                                mod_active_cases_plot_ui("active_plot"),
+                                width = 12
+                            ),
+                            tabPanel(
+                                title = "Covid-19 Cases per Day",
+                                #tableOutput("printtable"),
+                                mod_daily_cases_plot_ui("daily_plot"),
+                                width = 12
+                            ),
                             width = 12
                         )
-                    )
-                ),
-                bs4Dash::tabItem(
-                    tabName = "daily_cases",
-                    bs4Dash::box(
-                        title = "Covid-19 Cases per Day",
-                        width = 12
                     )
                 )
             )
@@ -87,6 +105,10 @@ covid_app <- function() {
             merged_active_cases
         )
 
+        #selected_table <- reactive(
+        #    subset(merged_daily_table, region %in% as.vector(merged_active_cases$region[current_selection()]))
+        #)
+
         #output$printtable <- renderTable({
         #    selected_table()
         #})
@@ -94,7 +116,16 @@ covid_app <- function() {
         mod_active_cases_plot_server(
             "active_plot",
             merged_active_cases,
-            current_selection)
+            current_selection
+        )
+
+        mod_daily_cases_plot_server(
+            "daily_plot",
+            merged_daily_table,
+            current_selection,
+            merged_active_cases
+        )
+
     }
 
     shinyApp(ui, server)

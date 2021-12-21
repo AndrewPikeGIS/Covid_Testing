@@ -1,6 +1,6 @@
 on_cols_for_plotting <- function() {
     on_cols_for_plot <- c(
-        "Date",
+        "date",
         "Ottawa_Public_Health",
         "Peel_Public_Health",
         "Toronto_Public_Health",
@@ -57,3 +57,10 @@ create_list_of_regions <- function(merged_active_cases) {
     list_of_regions <- merged_active_cases[["region"]]
     return(list_of_regions)
 }
+
+ab_regions <- c(
+    "CALGARY ZONE",
+    "EDMONTON ZONE",
+    "CENTRAL ZONE",
+    "NORTH ZONE",
+    "SOUTH ZONE")

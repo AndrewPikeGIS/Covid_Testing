@@ -51,13 +51,17 @@ clean_on_daily_table <- function(on_daily_covid_data) {
         tidyr::pivot_longer(
             cols = all_of(piv_cols),
             names_to = "region",
-            values_to = "cases_reported")
+            values_to = "daily_cases")
 
     startdate <- min(on_daily_covid_data_long$Date)
 
     on_daily_covid_data_long <- on_daily_covid_data_long %>%
         dplyr::mutate(
-            day_from_start = as.numeric(day_count(startdate, Date))
+            day_from_start = as.numeric(day_count(startdate, Date)),
+            prov = "ON"
+        ) %>%
+        dplyr::rename(
+            date = Date
         )
     return(on_daily_covid_data_long)
 }
@@ -109,9 +113,13 @@ create_ab_daily_cases_table <- function(alberta_covid_data) {
 
     ab_daily_cases <- ab_daily_cases %>%
         dplyr::mutate(
-            day_from_start = as.numeric(day_count(startdate, date))
+            day_from_start = as.numeric(day_count(startdate, date)),
+            prov = "AB"
         ) %>%
-        dplyr::ungroup()
+        dplyr::ungroup() %>%
+        dplyr::rename(
+            daily_cases = cases_reported
+        )
     return(ab_daily_cases)
 }
 
@@ -138,8 +146,31 @@ clean_bc_data <- function(bc_covid, bc_pop) {
     return(bc_covid)
 }
 
+clean_bc_for_daily_plt <- function(bc_covid_data) {
+    #make the filter dynamic on selection in reactable.
+    bc_daily <- bc_covid_data %>%
+        dplyr::filter(
+            region != "All",
+            region != "Unknown",
+            region != "Out of Canada"
+        ) %>%
+        dplyr::group_by(region, date) %>%
+        dplyr::summarise(
+            daily_cases = sum(new_cases),
+            daily_cases_smooth = sum(Cases_Reported_Smoothed)
+        ) %>%
+        dplyr::ungroup() %>%
+        dplyr::mutate(
+            prov = "BC"
+        )
+
+    return(bc_daily)
+}
+
 clean_sk_data <- function(sask_covid, sk_pop) {
     #clean up sask data
+    startdate <- min(sask_covid$Date)
+
     sask_covid <- sask_covid %>%
         dplyr::group_by(
             Date,
@@ -154,7 +185,12 @@ clean_sk_data <- function(sask_covid, sk_pop) {
         dplyr::ungroup() %>%
         dplyr::rename(
             date = Date,
-            region = Region
+            region = Region,
+            daily_cases = new_cases
+        ) %>%
+        dplyr::mutate(
+            day_from_start = as.numeric(day_count(startdate, date)),
+            prov = "SK"
         )
 
     sk_pop <- sk_pop %>%
@@ -168,6 +204,12 @@ clean_sk_data <- function(sask_covid, sk_pop) {
     return(sask_covid_data)
 }
 
+create_sk_active_table <- function(sk_covid_data) {
+    sk_active_covid <- sk_covid_data %>%
+        filter(Date == max(Date))
+
+    return(sk_active_covid)
+}
 
 clean_merge_active_cases_data <- function(alberta_covid_active,
                                    bc_covid_active,
@@ -185,7 +227,8 @@ clean_merge_active_cases_data <- function(alberta_covid_active,
         tidyr::drop_na(Population) %>%
         dplyr::mutate(
             cases_per_100k = active_cases / (Population / 100000),
-            cases_times_density = active_cases * density) %>%
+            cases_times_density = active_cases * density,
+            region = stringr::str_to_title(region)) %>%
         dplyr::filter(active_cases > 0) %>%
         dplyr::arrange(prov, region)
 
@@ -196,4 +239,92 @@ clean_merge_active_cases_data <- function(alberta_covid_active,
     #)
 
     return(merge_covid_active)
+}
+
+run_loess <- function(daily_df) {
+    fit <- daily_df %>%
+        tidyr::drop_na() %>%
+        tidyr::nest(-region) %>%
+        dplyr::mutate(
+            m = purrr::map(
+                data,
+                loess,
+                formula = daily_cases ~ day_from_start,
+                span = 0.04
+            ),
+            fitted = purrr::map(m, `[[`, "fitted")
+        )
+
+    pred <- fit %>%
+        dplyr::select(-m) %>%
+        tidyr::unnest(cols = c(data, fitted))
+
+    pred <- pred %>%
+        dplyr::rename(
+            daily_cases_smooth = fitted
+        ) %>%
+        dplyr::mutate(
+            daily_cases_smooth = dplyr::if_else(
+                daily_cases_smooth < 0, 0, daily_cases_smooth
+            )
+        )
+
+    return(pred)
+}
+
+merge_daily_covid_tables <- function(
+    ab_table,
+    bc_table,
+    sk_table,
+    on_table
+) {
+    ab_table <- ab_table %>%
+        dplyr::select(
+            region,
+            prov,
+            date,
+            daily_cases,
+            daily_cases_smooth
+        )
+
+    bc_table <- bc_table %>%
+        dplyr::select(
+            region,
+            prov,
+            date,
+            daily_cases,
+            daily_cases_smooth
+        )
+
+    sk_table <- sk_table %>%
+        dplyr::select(
+            region,
+            prov,
+            date,
+            daily_cases,
+            daily_cases_smooth
+        )
+
+    on_table <- on_table %>%
+        dplyr::select(
+            region,
+            prov,
+            date,
+            daily_cases,
+            daily_cases_smooth
+        )
+
+    merged_daily_table <- rbind(
+        ab_table,
+        bc_table,
+        on_table,
+        sk_table
+    ) %>%
+    dplyr::mutate(
+        region = stringr::str_to_title(region),
+        region_name = paste(region, prov)
+    )
+
+
+    return(merged_daily_table)
 }
