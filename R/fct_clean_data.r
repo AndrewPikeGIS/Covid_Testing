@@ -43,9 +43,9 @@ clean_on_data <- function(ontario_covid, on_pop) {
 }
 
 clean_on_daily_table <- function(on_daily_covid_data) {
-    colnames(on_daily_covid_data) <- ontario_daily_col_names()
-
-    piv_cols <- ontario_daily_col_names()[-1]
+    #colnames(on_daily_covid_data) <- ontario_daily_col_names()
+    on_daily_covid_cols <- colnames(on_daily_covid_data)
+    piv_cols <- on_daily_covid_cols[-1]
 
     on_daily_covid_data_long <- on_daily_covid_data %>%
         tidyr::pivot_longer(
@@ -58,7 +58,9 @@ clean_on_daily_table <- function(on_daily_covid_data) {
     on_daily_covid_data_long <- on_daily_covid_data_long %>%
         dplyr::mutate(
             day_from_start = as.numeric(day_count(startdate, Date)),
-            prov = "ON"
+            prov = "ON",
+            region = gsub("_", " ", region),
+            region = stringr::str_to_title(region)
         ) %>%
         dplyr::rename(
             date = Date
@@ -211,6 +213,18 @@ create_sk_active_table <- function(sk_covid_data) {
     return(sk_active_covid)
 }
 
+clean_sk_table_for_daily <- function(sk_covid_data) {
+    sk_covid_daily <- sk_covid_data %>%
+        select(
+            region,
+            prov,
+            date,
+            daily_cases,
+            day_from_start
+        )
+    return(sk_covid_daily)
+}
+
 clean_merge_active_cases_data <- function(alberta_covid_active,
                                    bc_covid_active,
                                    ontario_covid_active,
@@ -257,7 +271,12 @@ run_loess <- function(daily_df) {
 
     pred <- fit %>%
         dplyr::select(-m) %>%
-        tidyr::unnest(cols = c(data, fitted))
+        tidyr::unnest(
+            cols = c(
+                data,
+                fitted
+            )
+        )
 
     pred <- pred %>%
         dplyr::rename(

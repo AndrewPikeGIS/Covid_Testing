@@ -1,6 +1,6 @@
 build_daily_case_plot <- function(daily_cases_df) {
     daily_cases_df %>%
-        dplyr::group_by(region) %>%
+        dplyr::group_by(region_name) %>%
         plotly::plot_ly(
             x = ~date,
             y = ~daily_cases_smooth,
@@ -21,6 +21,6 @@ build_daily_case_plot <- function(daily_cases_df) {
                 tickangle = -45),
             yaxis = list(title = "Daily Cases"),
             margin = list(b = 150),
-            title = "Alberta Daily Covid Cases Reported") %>%
+            title = "Daily Covid Cases Reported") %>%
         plotly::rangeslider()
 }

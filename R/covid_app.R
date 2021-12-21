@@ -32,7 +32,9 @@ covid_app <- function() {
 
     sk_actve_cases <- create_active_sk_table(sk_covid_data)
 
-    sk_covid_daily_data <- run_loess(sk_covid_data)
+    sk_covid_daily_data <- clean_sk_table_for_daily(sk_covid_data)
+
+    sk_covid_daily_data <- run_loess(sk_covid_daily_data)
 
     merged_active_cases <- clean_merge_active_cases_data(
         alberta_active_cases,
@@ -73,7 +75,7 @@ covid_app <- function() {
                 bs4Dash::tabItem(
                     tabName = "covid_case_count",
                     fillRow(
-                        flex = c(1, 2),
+                        flex = c(1, 4),
                         bs4Dash::box(
                             title = "Select Regions",
                             mod_active_cases_table_ui("case_table"),
