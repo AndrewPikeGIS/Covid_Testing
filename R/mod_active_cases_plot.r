@@ -5,7 +5,8 @@ mod_active_cases_plot_ui <- function(id) {
 
 mod_active_cases_plot_server <- function(id,
                                          active_case_table,
-                                         current_selection) {
+                                         current_selection,
+                                         case_field) {
 
     moduleServer(id, function(input, output, session) {
 
@@ -14,7 +15,7 @@ mod_active_cases_plot_server <- function(id,
         )
 
         output$active_case_plot <- plotly::renderPlotly({
-            build_active_case_bar_plot(selected_table())
+            build_active_case_bar_plot(selected_table(), case_field())
         })
     })
 }

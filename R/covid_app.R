@@ -75,9 +75,15 @@ covid_app <- function() {
                 bs4Dash::tabItem(
                     tabName = "covid_case_count",
                     fillRow(
-                        flex = c(1, 4),
+                        flex = c(1, 3),
                         bs4Dash::box(
                             title = "Select Regions",
+                            #mod_switch_act_plot_pop_ui("per_cap"),
+                            checkboxInput(
+                                "pop_per_cap",
+                                "Show Normalized Case Count\n(per 100k pop)",
+                                FALSE
+                            ),
                             mod_active_cases_table_ui("case_table"),
                             width = 12
                         ),
@@ -92,6 +98,11 @@ covid_app <- function() {
                                 #tableOutput("printtable"),
                                 mod_daily_cases_plot_ui("daily_plot"),
                                 width = 12
+                            ),
+                            tabPanel(
+                                title = "Testing_Text",
+                                #tableOutput("printtable"),
+                                verbatimTextOutput("printtext")
                             ),
                             width = 12
                         )
@@ -115,10 +126,21 @@ covid_app <- function() {
         #    selected_table()
         #})
 
+
+        case_field <- reactive(
+            dplyr::if_else(
+                isTRUE(input$pop_per_cap),
+                "cases_per_100k",
+                "active_cases")
+        )
+
+        output$printtext <- renderText({case_field()})
+
         mod_active_cases_plot_server(
             "active_plot",
             merged_active_cases,
-            current_selection
+            current_selection,
+            case_field
         )
 
         mod_daily_cases_plot_server(

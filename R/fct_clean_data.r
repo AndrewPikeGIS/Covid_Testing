@@ -215,7 +215,7 @@ create_sk_active_table <- function(sk_covid_data) {
 
 clean_sk_table_for_daily <- function(sk_covid_data) {
     sk_covid_daily <- sk_covid_data %>%
-        select(
+        dplyr::select(
             region,
             prov,
             date,
@@ -242,15 +242,13 @@ clean_merge_active_cases_data <- function(alberta_covid_active,
         dplyr::mutate(
             cases_per_100k = active_cases / (Population / 100000),
             cases_times_density = active_cases * density,
-            region = stringr::str_to_title(region)) %>%
+            region = stringr::str_to_title(region),
+            region = dplyr::case_when(
+                region == "Oxford Elgin-St.thomas" ~ "Oxford Elgin-St. Thomas",
+                TRUE ~ region
+            )) %>%
         dplyr::filter(active_cases > 0) %>%
         dplyr::arrange(prov, region)
-
-    #merge_covid_active$region <- factor(
-    #    merge_covid_active$region,
-    #    levels = unique(merge_covid_active$region)
-    #    [order(merge_covid_active$region, decreasing = TRUE)]
-    #)
 
     return(merge_covid_active)
 }
@@ -341,9 +339,22 @@ merge_daily_covid_tables <- function(
     ) %>%
     dplyr::mutate(
         region = stringr::str_to_title(region),
-        region_name = paste(region, prov)
+        region = dplyr::case_when(
+            region == "Chatham Kent" ~ "Chatham-Kent",
+            region == "Haldimand Norfolk" ~ "Haldimand-Norfolk",
+            region == "Haliburton Kawartha Pine Ridge" ~ "Haliburton, Kawartha, Pine Ridge",    # nolint
+            region == "Hastings Prince Edward" ~ "Hastings & Prince Edward Counties",           # nolint
+            region == "Kfla" ~ "Kingston, Frontenac, Lennox & Addington",
+            region == "Leeds Grenville Lanark" ~ "Leeds, Grenville And Lanark District",        # nolint
+            region == "Middlesex London" ~ "Middlesex-London",
+            region == "Southwestern" ~ "Oxford Elgin-St. Thomas",
+            region == "Peterborough County City" ~ "Peterborough County-City",
+            region == "Wellington Dufferin Guelph" ~ "Wellington-Dufferin-Guelph",              #nolint
+            region == "Windsor Essex County" ~ "Windsor-Essex County",
+            TRUE ~ region
+        ),
+        region_name = paste(region, prov),
     )
-
 
     return(merged_daily_table)
 }
