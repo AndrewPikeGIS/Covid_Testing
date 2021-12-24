@@ -47,11 +47,10 @@ covid_app <- function() {
         bc_covid_daily,
         ontario_covid_daily_data,
         sk_covid_daily_data
-    )
+    ) %>%
+    add_color_to_region_name()
 
     #load("data\\merged_cases.rda")
-
-    #list_of_regions <- create_list_of_regions(merged_active_cases) nolint
 
     ui <- bs4Dash::dashboardPage(
         fullscreen = TRUE,
@@ -78,24 +77,19 @@ covid_app <- function() {
                         flex = c(1, 3),
                         bs4Dash::box(
                             title = "Select Regions",
-                            #mod_switch_act_plot_pop_ui("per_cap"),
-                            checkboxInput(
-                                "pop_per_cap",
-                                "Show Normalized Case Count\n(per 100k pop)",
-                                FALSE
-                            ),
                             mod_active_cases_table_ui("case_table"),
                             width = 12
                         ),
                         bs4Dash::tabBox(
                             tabPanel(
                                 title = "Active Covid-19 Cases",
+                                mod_switch_act_plot_pop_ui("per_cap"),
                                 mod_active_cases_plot_ui("active_plot"),
                                 width = 12
                             ),
                             tabPanel(
                                 title = "Covid-19 Cases per Day",
-                                #tableOutput("printtable"),
+                                mod_daily_cases_point_ui("daily_points"),
                                 mod_daily_cases_plot_ui("daily_plot"),
                                 width = 12
                             ),
@@ -113,6 +107,7 @@ covid_app <- function() {
     )
 
     server <- function(input, output, session) {
+
         current_selection <- mod_active_cases_table_server(
             "case_table",
             merged_active_cases
@@ -126,13 +121,7 @@ covid_app <- function() {
         #    selected_table()
         #})
 
-
-        case_field <- reactive(
-            dplyr::if_else(
-                isTRUE(input$pop_per_cap),
-                "cases_per_100k",
-                "active_cases")
-        )
+        case_field <- mod_switch_act_plot_pop_server("per_cap")
 
         output$printtext <- renderText({case_field()})
 
@@ -143,11 +132,16 @@ covid_app <- function() {
             case_field
         )
 
+        points_visible <- mod_daily_cases_point_server(
+            "daily_points"
+        )
+
         mod_daily_cases_plot_server(
             "daily_plot",
             merged_daily_table,
             current_selection,
-            merged_active_cases
+            merged_active_cases,
+            points_visible
         )
 
     }

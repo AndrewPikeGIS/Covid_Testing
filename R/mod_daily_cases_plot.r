@@ -6,7 +6,8 @@ mod_daily_cases_plot_ui <- function(id) {
 mod_daily_cases_plot_server <- function(id,
                                         daily_case_table,
                                         current_selection,
-                                        active_case_table) {
+                                        active_case_table,
+                                        points_visible) {
     moduleServer(id, function(input, output, session) {
         #needs to be dynamic on reactable.
         selected_table <- reactive(
@@ -17,7 +18,12 @@ mod_daily_cases_plot_server <- function(id,
         )
 
         output$daily_case_plot <- plotly::renderPlotly({
-            build_daily_case_plot(selected_table())
+            build_daily_case_plot(selected_table()) %>%
+            add_points_trace_to_daily_plot(
+                selected_table(),
+                points_visible()
+            ) %>%
+            add_layout_to_daily_case_plot()
         })
     })
 }

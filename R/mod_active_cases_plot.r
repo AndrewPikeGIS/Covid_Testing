@@ -15,7 +15,12 @@ mod_active_cases_plot_server <- function(id,
         )
 
         output$active_case_plot <- plotly::renderPlotly({
-            build_active_case_bar_plot(selected_table(), case_field())
+            build_active_case_bar_plot(
+                selected_table(),
+                case_field()
+            ) %>%
+            add_layout_to_active_case_bar(case_field())
+
         })
     })
 }

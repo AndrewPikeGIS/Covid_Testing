@@ -289,6 +289,57 @@ run_loess <- function(daily_df) {
     return(pred)
 }
 
+daily_color <- function(daily_cases_df) {
+        palette_region <- grDevices::colorRampPalette(c(
+        "darkblue",
+        "blue",
+        "darkgreen",
+        "green",
+        "lightgreen",
+        "yellow",
+        "orange",
+        "red",
+        "darkred",
+        "violet",
+        "purple",
+        "#2f014b",
+        "#13011f"
+        ),
+        bias = 1
+    )
+
+    return(palette_region(length(unique(daily_cases_df$region_name))))
+}
+
+add_color_to_region_name <- function(daily_case_df) {
+    palette_region <- grDevices::colorRampPalette(c(
+        "darkblue",
+        "blue",
+        "darkgreen",
+        "green",
+        "lightgreen",
+        "yellow",
+        "orange",
+        "red",
+        "darkred",
+        "violet",
+        "purple",
+        "#2f014b",
+        "#13011f"
+        ),
+        bias = 1
+    )
+
+    palette_region(length(unique(daily_case_df$region_name)))
+
+    daily_case_df$region_name <- factor(
+        daily_case_df$region_name,
+        labels = palette_region(length(unique(daily_case_df$region_name)))
+    )
+
+    return(daily_case_df)
+}
+
 merge_daily_covid_tables <- function(
     ab_table,
     bc_table,
