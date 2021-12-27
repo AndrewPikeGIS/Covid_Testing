@@ -87,6 +87,8 @@ clean_ab_data <- function(alberta_covid, ab_pop) {
     ab_pop <- ab_pop %>%
         dplyr::mutate(density = Population / area)
 
+    ab_pop <- ab_pop %>%
+        janitor::adorn_totals("row")
     #merge the Alberta population dat to the covid dataset.
     alberta_covid <- dplyr::left_join(
         alberta_covid,
@@ -152,7 +154,6 @@ clean_bc_for_daily_plt <- function(bc_covid_data) {
     #make the filter dynamic on selection in reactable.
     bc_daily <- bc_covid_data %>%
         dplyr::filter(
-            region != "All",
             region != "Unknown",
             region != "Out of Canada"
         ) %>%
@@ -221,6 +222,9 @@ clean_sk_table_for_daily <- function(sk_covid_data) {
             date,
             daily_cases,
             day_from_start
+        ) %>%
+        dplyr::filter(
+            region != "Total"
         )
     return(sk_covid_daily)
 }
@@ -248,7 +252,14 @@ clean_merge_active_cases_data <- function(alberta_covid_active,
                 TRUE ~ region
             )) %>%
         dplyr::filter(active_cases > 0) %>%
-        dplyr::arrange(prov, region)
+        dplyr::select(
+            region,
+            prov,
+            Population,
+            active_cases,
+            cases_per_100k
+        ) %>%
+        dplyr::ungroup()
 
     return(merge_covid_active)
 }
@@ -409,3 +420,51 @@ merge_daily_covid_tables <- function(
 
     return(merged_daily_table)
 }
+
+add_prov_totals_active <- function(df_in) {
+
+    agg_table <- df_in %>%
+        dplyr::group_by(prov) %>%
+        dplyr::summarise(
+            active_cases = sum(active_cases),
+            Population = sum(Population)
+        ) %>%
+        dplyr::mutate(
+            region = paste("Total", prov),
+            cases_per_100k = active_cases / (Population / 100000)
+        )
+
+    df_out <- dplyr::bind_rows(df_in, agg_table) %>%
+        dplyr::arrange(prov, region)
+    return(df_out)
+}
+
+add_prov_totals_daily <- function(df_in) {
+    startdate <- min(df_in$date)
+
+    agg_table <- df_in %>%
+        dplyr::group_by(prov, date) %>%
+        dplyr::summarise(
+            daily_cases = sum(daily_cases),
+        ) %>%
+        dplyr::mutate(
+            region = paste("Total", prov),
+            region_name = region,
+            day_from_start = as.numeric(day_count(startdate, date))
+        ) %>%
+        dplyr::arrange(
+            region,
+            date
+        )
+
+    df_smooth <- run_loess(agg_table) %>%
+        dplyr::select(
+            -day_from_start
+        )
+
+    df_out <- dplyr::bind_rows(df_in, df_smooth) %>%
+        dplyr::arrange(prov, region)
+    return(df_out)
+}
+
+test <- add_prov_totals_daily(merged_daily_table)

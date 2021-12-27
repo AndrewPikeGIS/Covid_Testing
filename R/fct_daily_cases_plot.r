@@ -12,8 +12,9 @@ build_daily_case_plot <- function(daily_cases_df) {
             hovertext = ~paste(
                 "Region:",
                 region,
+                "<br>",
                 prov,
-                "<br>Smoothed Daily Cases:",
+                "<br>Daily Cases:",
                 daily_cases_smooth,
                 "<br>Date:",
                 date),

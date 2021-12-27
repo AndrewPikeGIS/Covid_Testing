@@ -40,7 +40,8 @@ covid_app <- function() {
         alberta_active_cases,
         ontario_active_cases,
         bc_active_cases,
-        sk_actve_cases)
+        sk_actve_cases) %>%
+        add_prov_totals_active()
 
     merged_daily_table <- merge_daily_covid_tables(
         alberta_daily_covid_data,
@@ -48,6 +49,7 @@ covid_app <- function() {
         ontario_covid_daily_data,
         sk_covid_daily_data
     ) %>%
+    add_prov_totals_daily() %>%
     add_color_to_region_name()
 
     #load("data\\merged_cases.rda")

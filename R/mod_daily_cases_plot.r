@@ -9,7 +9,7 @@ mod_daily_cases_plot_server <- function(id,
                                         active_case_table,
                                         points_visible) {
     moduleServer(id, function(input, output, session) {
-        #needs to be dynamic on reactable.
+
         selected_table <- reactive(
             subset(
                 daily_case_table,
