@@ -60,15 +60,15 @@ covid_app <- function() {
         bs4Dash::dashboardSidebar(
             bs4Dash::sidebarMenu(
                 bs4Dash::menuItem(
-                    "Active Covid Cases",
+                    "Active and Daily COVID cases",
                     tabName = "covid_case_count",
-                    icon = icon("chart-bar")
-                ),
-                bs4Dash::menuItem(
-                    "Daily Cases",
-                    tabName = "daily_cases",
                     icon = icon("chart-line")
                 )
+                #bs4Dash::menuItem(
+                #    "Daily Cases",
+                #    tabName = "daily_cases",
+                #    icon = icon("chart-line")
+                #)
             )
         ),
         bs4Dash::dashboardBody(
@@ -95,11 +95,11 @@ covid_app <- function() {
                                 mod_daily_cases_plot_ui("daily_plot"),
                                 width = 12
                             ),
-                            tabPanel(
-                                title = "Testing_Text",
+                            #tabPanel(
+                            #    title = "Testing_Text",
                                 #tableOutput("printtable"),
-                                verbatimTextOutput("printtext")
-                            ),
+                            #    verbatimTextOutput("printtext")
+                            #),
                             width = 12
                         )
                     )

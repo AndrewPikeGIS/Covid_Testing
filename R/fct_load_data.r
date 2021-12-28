@@ -38,7 +38,7 @@ load_bc_data <- function() {
 
 load_sk_data <- function() {
     #build auto checker to grab the correct csv.
-    sask_covid <- readr::read_csv("https://dashboard.saskatchewan.ca/export/cases/4306.csv", guess_max = 15000) # nolint
+    sask_covid <- automate_sask_download()
 
     sk_pop <- readr::read_csv("data/SK_pop.csv")
 
@@ -47,5 +47,31 @@ load_sk_data <- function() {
     return(sk_covid_data)
 }
 
-#run this
-rsconnect::setAccountInfo(name='andrew-pike-sds', token='4549BB557E8948BBEE60C3CD75EC3698', secret='UXxMZJgy2EocShHeyw8WakrLvuvlqvLEpR4O57Bm')
+
+try_load_url <- function(url) {
+    response <- tryCatch({
+            readr::read_csv(url, guess_max = 15000)
+        },
+        error = function(cond) {
+            return(NA)
+        }
+    )
+    return(response)
+}
+
+automate_sask_download <- function() {
+    url_return <- NA
+    file_num <- 4312
+    while (is.na(url_return)) {
+        sask_url <- paste0(
+            "https://dashboard.saskatchewan.ca/export/cases/",
+            file_num,
+            ".csv"
+        )
+        file_num <- file_num + 1
+        print(sask_url)
+        url_return <- try_load_url(sask_url)
+    }
+    return(url_return)
+}
+
