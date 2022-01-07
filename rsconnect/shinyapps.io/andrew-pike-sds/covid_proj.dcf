@@ -5,7 +5,7 @@ account: andrew-pike-sds
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5383783
-bundleId: 5423507
+bundleId: 5442822
 url: https://andrew-pike-sds.shinyapps.io/covid_proj/
-when: 1640982363.8059
-lastSyncTime: 1640982363.8059
+when: 1641536007.5585
+lastSyncTime: 1641536007.5585
