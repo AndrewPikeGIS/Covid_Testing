@@ -8,4 +8,4 @@
 #)
 
 
-#rsconnect::deployApp("D:/Data_Science_Work/COVID_Doc/Covid_Testing")
+rsconnect::deployApp("D:/Data_Science_Work/COVID_Doc/Covid_Testing")
