@@ -68,7 +68,7 @@ automate_sask_download <- function() {
             file_num,
             ".csv"
         )
-        file_num <- file_num + 1
+        file_num <- file_num + 4
         print(sask_url)
         url_return <- try_load_url(sask_url)
     }
