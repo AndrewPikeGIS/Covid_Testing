@@ -125,7 +125,9 @@ covid_app <- function() {
 
         case_field <- mod_switch_act_plot_pop_server("per_cap")
 
-        output$printtext <- renderText({case_field()})
+        output$printtext <- renderText({
+            case_field()
+        })
 
         mod_active_cases_plot_server(
             "active_plot",

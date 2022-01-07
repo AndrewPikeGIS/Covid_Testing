@@ -445,5 +445,3 @@ add_prov_totals_daily <- function(df_in) {
         dplyr::arrange(prov, region)
     return(df_out)
 }
-
-test <- add_prov_totals_daily(merged_daily_table)
