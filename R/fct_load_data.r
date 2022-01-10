@@ -61,17 +61,27 @@ try_load_url <- function(url) {
 
 automate_sask_download <- function() {
     url_return <- NA
-    file_num <- 4379
+    file_num <- 4380
     while (is.na(url_return)) {
         sask_url <- paste0(
             "https://dashboard.saskatchewan.ca/export/cases/",
             file_num,
             ".csv"
         )
-        file_num <- file_num + 4
+        file_num <- file_num + 1
         print(sask_url)
         url_return <- try_load_url(sask_url)
+        if (!is.na(url_return)) {
+            url_return <- check_for_field(url_return)
+        }
     }
     return(url_return)
 }
 
+check_for_field <- function(df_in) {
+    if ("Region" %in% colnames(df_in)) {
+        return(df_in)
+    } else {
+        return(NA)
+    }
+}
