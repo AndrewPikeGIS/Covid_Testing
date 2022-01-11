@@ -11,19 +11,75 @@ covid_app <- function() {
             load_on_data()
         },
         error = function(cond) {
-            load("data/on_covid.rda")
+            return(NA)
         }
     )
 
-    ontario_covid_data <- load_on_data()
+    if (is.na(ontario_covid_data)) {
+        load("data/on_covid.rda")
+    }
+
+    ontario_covid_daily_data <- tryCatch({
+            load_daily_on_data()
+        },
+        error = function(cond) {
+            return(NA)
+        }
+    )
+
+    if (is.na(ontario_covid_daily_data)) {
+        load("data/on_daily.rda")
+    }
+
+    alberta_covid_data <- tryCatch({
+            load_ab_data()
+        },
+        error = function(cond) {
+            return(NA)
+        }
+    )
+
+    if (is.na(alberta_covid_data)) {
+        load("data/ab_covid.rda")
+    }
+
+    bc_covid_data <- tryCatch({
+            load_bc_data()
+        },
+        error = function(cond) {
+            return(NA)
+        }
+    )
+
+    if (is.na(bc_covid_data)) {
+        load("data/bc_covid.rda")
+    }
+
+    sk_covid_data <- tryCatch({
+            load_sk_data()
+        },
+        error = function(cond) {
+            return(NA)
+        }
+    )
+
+    if (is.na(sk_covid_data)) {
+        load("data/sk_covid.rda")
+    }
+
+    #ontario_covid_data <- load_on_data()
+
+    #ontario_covid_daily_data <- load_daily_on_data()
+
+    #alberta_covid_data <- load_ab_data()
+
+    #bc_covid_data <- load_bc_data()
+
+    #sk_covid_data <- load_sk_data()
 
     ontario_active_cases <- create_active_on_table(ontario_covid_data)
 
-    ontario_covid_daily_data <- load_daily_on_data()
-
     ontario_covid_daily_data <- run_loess(ontario_covid_daily_data)
-
-    alberta_covid_data <- load_ab_data()
 
     alberta_active_cases <- create_active_ab_table(alberta_covid_data)
 
@@ -31,13 +87,9 @@ covid_app <- function() {
 
     alberta_daily_covid_data <- run_loess(alberta_daily_covid_data)
 
-    bc_covid_data <- load_bc_data()
-
     bc_active_cases <- create_active_bc_table(bc_covid_data)
 
     bc_covid_daily <- clean_bc_for_daily_plt(bc_covid_data)
-
-    sk_covid_data <- load_sk_data()
 
     sk_actve_cases <- create_active_sk_table(sk_covid_data)
 
