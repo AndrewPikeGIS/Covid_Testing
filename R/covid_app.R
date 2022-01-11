@@ -6,6 +6,15 @@
 #' @examples
 
 covid_app <- function() {
+
+    ontario_covid_data <- tryCatch({
+            load_on_data()
+        },
+        error = function(cond) {
+            load("data/on_covid.rda")
+        }
+    )
+
     ontario_covid_data <- load_on_data()
 
     ontario_active_cases <- create_active_on_table(ontario_covid_data)
@@ -51,8 +60,6 @@ covid_app <- function() {
     ) %>%
     add_prov_totals_daily() %>%
     add_color_to_region_name()
-
-    #load("data\\merged_cases.rda")
 
     ui <- bs4Dash::dashboardPage(
         fullscreen = TRUE,
