@@ -122,12 +122,12 @@ covid_app <- function() {
                     "Active and Daily COVID cases",
                     tabName = "covid_case_count",
                     icon = icon("chart-line")
+                ),
+                bs4Dash::menuItem(
+                    "Disclaimer",
+                    tabName = "disclaimer",
+                    icon = icon("file-alt")
                 )
-                #bs4Dash::menuItem(
-                #    "Daily Cases",
-                #    tabName = "daily_cases",
-                #    icon = icon("chart-line")
-                #)
             )
         ),
         bs4Dash::dashboardBody(
@@ -161,6 +161,14 @@ covid_app <- function() {
                             #),
                             width = 12
                         )
+                    )
+                ),
+                bs4Dash::tabItem(
+                    tabName = "disclaimer",
+                    bs4Dash::box(
+                        title = "DISCLAIMER",
+                        mod_render_text_ui("disclaimer"),
+                        width = 12
                     )
                 )
             )
@@ -206,6 +214,8 @@ covid_app <- function() {
             merged_active_cases,
             points_visible
         )
+
+        mod_render_text_server("disclaimer")
 
     }
 
