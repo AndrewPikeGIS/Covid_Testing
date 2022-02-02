@@ -61,7 +61,7 @@ try_load_url <- function(url) {
 
 automate_sask_download <- function() {
     url_return <- NA
-    file_num <- 4408
+    file_num <- 4534
     while (is.na(url_return)) {
         sask_url <- paste0(
             "https://dashboard.saskatchewan.ca/export/cases/",
