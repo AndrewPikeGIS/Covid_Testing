@@ -7,3 +7,7 @@ The goals of this exercise are to: <br>
 * Create a reactive web app to display active case counts and daily reported cases
 * Build the web app as a package that can be hosted on shinyapps.io
 * Leverage clean coding techniques from "Clean Code: A Handbook of Agile Software Craftsmanship" by Robert Martin
+
+To launch the app follow the link below.
+
+https://andrew-pike-sds.shinyapps.io/covid_proj/
