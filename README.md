@@ -1,3 +1,5 @@
+# The data sources have been pulled by the various government groups and the app is no longer functional.
+
 # Covid Cases App
 
 This Shiny application is meant as a showcase for some of my R-based data science development. <br>
